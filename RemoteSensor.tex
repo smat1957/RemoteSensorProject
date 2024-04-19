@@ -1,0 +1,600 @@
+\documentclass[12pt,a4paper,uplatex]{jsarticle}
+\usepackage[utf8]{inputenc}
+%\usepackage{graphicx}
+%\usepackage{bm}
+%\usepackage{amsmath}
+
+\usepackage[T1]{fontenc}
+\usepackage{ascmac, here, txfonts, txfonts}
+\usepackage{listings, jlisting}
+\usepackage{color}
+\usepackage{fancybox}
+\usepackage{comment}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage {colortbl,array,xcolor}
+\usepackage{framed}
+\usepackage {boites}
+\usepackage{eclbkbox}
+\usepackage{url}
+
+\lstset{
+	%プログラム言語(複数の言語に対応，C,C++も可)
+	language = Java,
+	%背景色と透過度
+	backgroundcolor={\color[gray]{.90}},
+	%枠外に行った時の自動改行
+	breaklines = true,
+	%自動改行後のインデント量(デフォルトでは20[pt])	
+	breakindent = 12pt,
+	%標準の書体
+	basicstyle = \ttfamily\scriptsize,
+	%コメントの書体
+	commentstyle = {\itshape \color[cmyk]{1,0.4,1,0}},
+	%関数名等の色の設定
+	classoffset = 0,
+	%キーワード(int, ifなど)の書体
+	keywordstyle = {\bfseries \color[cmyk]{0,1,0,0}},
+	%表示する文字の書体
+	stringstyle = {\ttfamily \color[rgb]{0,0,1}},
+	%枠 "t"は上に線を記載, "T"は上に二重線を記載
+	%他オプション：leftline，topline，bottomline，lines，single，shadowbox
+	frame = TBrl,
+	%frameまでの間隔(行番号とプログラムの間)
+	framesep = 5pt,
+	%行番号の位置
+	numbers = left,
+	%行番号の間隔
+	stepnumber = 1,
+	%行番号の書体
+	numberstyle = \tiny,
+	%タブの大きさ
+	tabsize = 4,
+	%キャプションの場所("tb"ならば上下両方に記載)
+	captionpos = none
+}
+
+\renewcommand{\lstlistingname}{}
+
+\setcounter{secnumdepth}{4}
+\setcounter{secnumdepth}{6}
+
+% Title Page
+\title{Remote Sensor Project}
+\author{S.Matoike}
+
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+%\begin{abstract}
+%\end{abstract}
+
+%\chapter{リモート計測システム}
+
+\section{リモートマシン}
+
+\subsection{リモート機器、センサー}
+
+\begin{figure}[H]
+	\begin{minipage}[b]{0.45\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.13]{figs/jpg/udrpzwh.jpg}
+		\caption{Raspberry Pi Zero WH}
+	\end{minipage}
+	\hspace{1.0cm}
+	\begin{minipage}[b]{0.45\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+		\caption{ADRSZOD:TP401A}
+	\end{minipage}
+\end{figure}
+
+\subsection{リモート処理の概要}
+
+\begin{itemize}
+	\item Raspberrin Pi Zero WH 上に用意したshell（sensor.sh）だが、このshellは別のRaspberryPiマシンからsshによって起動される
+	\item i2Cで接続された、臭気センサからの出力（電圧値）を、Pythonのプログラム（adrszOD.py）によって読み取ることができる
+	\item adrszOD.pyは、ch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを出力する様にしている
+	\item 測定の日付をdateコマンドで作成しているが、これは後ほどPythonのmatplotlibに合わせて、別途処理が必要になることのない様に、書式を（年月日と時分秒の間は、半角カンマ＋半角スペース1個）の格好になるように整形している
+	\item 日付の出力と、臭気センサの値が１行になる様にするため、pasteコマンドを使っている
+	\item paste のオペランドにしている、<(date +....)　と、<(python3 adrszOD.py...)との2つのコマンドを、<(any command) と囲むことによって、2つのファイルの様な扱いができる（プロセス置換）
+\end{itemize}
+
+（※「Efficient Linuxコマンドライン」オライリー・ジャパン のp.156に、プロセス置換の解説あり）
+
+\begin{itembox}[l]{/home/mat/Documents/sensor.sh}
+	\begin{verbatim}
+#!/usr/bin/bash
+dir='/home/mat/Documents'
+paste <(date +%Y-%m-%d,\ %H:%M:%S) \
+<(python3 "${dir}"/adrszOD.py | awk '{print $1}')
+	\end{verbatim}
+\end{itembox}
+
+\begin{itembox}[l]{sensor.sh の出力例}
+	\begin{verbatim}
+mat@raspberrypizero:~/Documents $ ./sensor.sh 
+2024-04-17, 02:40:55	ch1:0.79827
+mat@raspberrypizero:~/Documents $ 
+	\end{verbatim}
+\end{itembox}
+
+\begin{itembox}[l]{/home/mat/Documents/adrszOD.py}
+	\begin{verbatim}
+#!/usr/bin/env python
+import smbus
+import time
+
+i2c = smbus.SMBus(1)
+addr=0x68
+Vref=2.048
+
+def swap16(x):
+  return (((x << 8) & 0xFF00) | ((x >> 8) & 0x00FF))
+
+def sign16(x):
+  return ( -(x & 0b1000000000000000) | (x & 0b0111111111111111) )
+
+def readval(x):
+  i2c.write_byte(addr, x) #16bit
+  time.sleep(0.2)
+  data = i2c.read_word_data(addr,0x00)
+  raw = swap16(int(hex(data),16))
+  raw_s = sign16(int(hex(raw),16))
+  volts = round((Vref * raw_s / 32767),5)
+  return volts
+
+if __name__=="__main__":
+  volts1 = readval( 0b10011000 )
+  volts2 = readval( 0b10111000 )
+  volts3 = readval( 0b11011000 )
+  volts4 = readval( 0b11111000 )
+  out_msg = 'ch1:' + str(volts1) + ' ,ch2:' + str(volts2)+\
+    ' ,ch3:' + str(volts3)+ ' ,ch4:' + str(volts4)
+  print(out_msg)
+	\end{verbatim}
+\end{itembox}
+
+\section{ローカルマシン}
+
+\subsection{ローカル機器}
+
+\begin{figure}[H]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.12]{figs/jpg/udrp4b_front.jpg}
+		\caption{Raspberry Pi}
+		%	\end{minipage}
+	%	\hspace{1.0cm}
+	%	\begin{minipage}[b]{0.45\linewidth}
+		%		\centering
+		%		\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+		%		\caption{ADRSZOD:TP401A}
+	\end{minipage}
+\end{figure}
+
+%\subsection{処理の概要}
+
+\subsection{cronによる時刻指定処理}
+
+cronの仕組みを使って、3つの時刻指定の処理を登録した
+\begin{enumerate}
+	\item[(1)] 5分ごとに、リモートセンサの値を読み取る処理、rsensor.sh を起動する
+	\item[(2)] 毎日23時56分になったら、その日1日分の測定データを退避する処理、dayly.sh を起動する
+	\item[(3)] 毎週日曜日の朝0時1分になったら、先週1週間の（先週の日曜日の0時0分から昨日の土曜日の23時55分まで5分間隔で測定した）測定データをまとめる処理、weekly.sh を起動する
+\end{enumerate}
+
+\begin{itembox}[l]{crontab -e}
+	\begin{verbatim}
+		MAILTO=""
+		*/5 * * * * sh /home/mat/Documents/rsensor.sh
+		56 23 * * * sh /home/mat/Documents/dayly.sh
+		1 0 * * Sun sh /home/mat/Documents/weekly.sh
+	\end{verbatim}
+\end{itembox}
+
+ここで、MAILTO="" としているのは、「指定時刻にcronが処理を起動したよ」というメールを送信するためにsmtpを起動しようとして失敗し、指定の処理が起動されないという現象に対する対応である（postfixをインストールせよという者もいるが、特にメールの知らせが不要ならこのやり方が最も簡易な解決方法になる）
+
+\begin{screen}
+	\begin{verbatim}
+		+---------------- minute (0 - 59)
+		|  +------------- hour (0 - 23)
+		|  |  +---------- day of month (1 - 31)
+		|  |  |  +------- month (1 - 12)
+		|  |  |  |  +---- day of week (0 - 6) (Sunday=0 or 7)
+		|  |  |  |  |
+		*  *  *  *  *  command to be executed
+	\end{verbatim}
+\end{screen}
+
+\newpage
+
+\subsection{リモートセンサの処理をローカルから起動}
+
+リモート（192.168.3.27）のRaspberry Pi Zero WH に接続されている臭気センサの値を読みとるshell（sensor.sh）を、ローカル（192.168.3.21）のマシンRaspberry Pi からssh を使って起動するための shell（rsensor.sh）であり、cronによって5分ごとに起動される
+
+この時sshから、リモートマシン（Pi Zero）のユーザ（今の環境ではmat）のパスワードを要求されるが、人手によるインタラクティブな入力操作を想定していないので、予めsshpassを導入しておいて、それによってパスワードを自動応答させる様にしている
+
+sshでリモートのshellを実行した結果を受け取り、ローカルのw.txtに追記し蓄積していっている
+
+\begin{itembox}[l]{/home/mat/Documents/rsensor.sh}
+	\begin{verbatim}
+#!/usr/bin/bash
+### sudo apt install -y sshpass ###
+dir='/home/mat/Documents'
+addr='192.168.3.27'
+pwd='mypassword'
+sshpass -p "${pwd}" ssh mat@"${addr}" "${dir}"/sensor.sh \
+>> "${dir}"/w.txt
+	\end{verbatim}
+\end{itembox}
+
+w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動されたshell（rsensor.sh）によって、測定結果が蓄積されていく様子がわかる（このファイルは、1日の終わりの処理で 2024-04-16.txt の様に、日付をつけたファイル名に変えて保存している）
+
+\begin{itembox}[l]{w.txt -> 2024-04-16.txt}
+	\begin{verbatim}
+		2024-04-16, 00:35:04	ch1:1.0896
+		2024-04-16, 00:40:04	ch1:1.09016
+		2024-04-16, 00:45:04	ch1:1.09322
+		.... ....
+		2024-04-16, 23:45:04	ch1:0.9059
+		2024-04-16, 23:50:04	ch1:0.99653
+		2024-04-16, 23:55:04	ch1:0.98809
+	\end{verbatim}
+\end{itembox}
+
+\subsection{日毎の処理}
+
+毎日の23時55分に、その日の最後の測定が終わる事を前提として、cronには23時56分になったら次のshell（dayly.sh）を起動する様にしている
+
+現在時刻が23時55分を超えていることを確認した上で、次のことを行っている
+\begin{itemize}
+	\item 蓄積された1日分の測定データ w.txt を、bkup.txt という名前のファイルにコピーしている
+	\item w.txt を、dataフォルダ以下に、「今日の日付.txt」 という名前に変更して保存している
+	\item 空のファイル w.txt を次の日の測定データの蓄積場所のために用意している（ touch）
+	\item Pythonの仮想環境venv11に入って、daily.py を起動している（第1引数にdataフォルダ以下に保存した測定データファイルの名前＝年月日を指定している）
+	\item Pythonの仮想環境venv11を終えている
+\end{itemize}
+
+\begin{itembox}[l]{/home/mat/Documents/dayly.sh}
+	\begin{verbatim}
+#!/usr/bin/bash
+dir='/home/mat/Documents'
+dates=`date +%Y-%m-%d`
+hour=`date +%H`
+minu=`date +%M`
+if [ "${hour}" -ge 23 ]; then
+  if [ "${minu}" -gt 55 ]; then
+    cp "${dir}"/w.txt "${dir}"/bkup.txt
+    mv "${dir}"/w.txt "${dir}"/data/"${dates}".txt
+    touch "${dir}"/w.txt
+    source "${dir}"/venv11/bin/activate
+      "${dir}"/venv11/bin/python3 "${dir}"/dayly.py "${dates}"
+    deactivate
+  fi
+fi
+	\end{verbatim}
+\end{itembox}
+
+\newpage
+
+このPythonのプログラムを実行した結果として、次の様な1日分のデータの変化をグラフ化したものを、figsフォルダ以下に 「今日の日付.png」 という名称で保存している
+
+\begin{figure}[htbp]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.5]{figs/eps/SmelLevel.eps}
+		\caption{dayly.pyの出力（4月16日の0時から24時まで）}
+	\end{minipage}
+	%\hspace{1.0cm}
+	%\begin{minipage}[b]{0.45\linewidth}
+	%\centering
+	%\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+	%\caption{ADRSZOD:TP401A}
+	%\end{minipage}
+\end{figure}
+
+\subsection{グラフ描画のための関数（myplot.py）}
+
+dayly.py と weekly.py で共通に呼び出しているgraph\_plot()関数を定義している
+
+横軸に日付と時刻（データは5分毎）を置くため、少し工夫が必要になる
+
+（\url{https://matplotlib.org/stable/api/dates_api.html}
+の記事が参考になった）
+
+ポイントは、matplotlibが理解する日付の様式で書いたものを使うと、matplotlibのdatesに、locatorとformatterを自動生成させて、それ以下の全てを任せきることができる
+
+\begin{itembox}[l]{/home/mat/Documents/myplot.py}
+	\begin{verbatim}
+import numpy as np, pandas as pd
+from matplotlib import pyplot as plt, style, dates as mdates
+
+def graph_plot(list0, dirstr, datestr, weekly=False):
+  df = pd.DataFrame(list0, columns=["DateVal", "Value"])
+  matplotlib.style.use('ggplot')
+  fig, ax = plt.subplots()
+  x = df.loc[:,"DateVal"].values
+  y = df.loc[:,"Value"].values
+  locator = mdates.AutoDateLocator()
+  formatter = mdates.ConciseDateFormatter(locator)
+  ax.xaxis.set_major_locator(locator)
+  ax.xaxis.set_major_formatter(formatter)
+  ymax = np.array([y.max(), 1.25]).max()
+  ymin = np.array([y.min(), 0.52]).min()
+  ax.set_ylim([ymin, ymax])
+  ax.set_xlabel('Date-Time')
+  ax.set_ylabel('Volt')
+  if weekly:
+    titlestr = "Smel Level : " + datestr + "(Weekly)"
+    figpath = dirstr + "/figs/" + "Weekly_" + datestr
+  else:
+    titlestr = "Smel Level : " + datestr
+    figpath = dirstr + "/figs/" + datestr
+  ax.set_title(titlestr)
+  ax.plot(x,y)
+  fig.savefig(figpath + '.png')
+  plt.show()	
+	\end{verbatim}
+\end{itembox}
+
+\newpage
+
+\subsection{日毎処理のプログラム}
+
+\begin{itemize}
+	\item myplot.py から、graph\_plot() 関数をimport している
+	\item 第1引数に指定があったら、そこで指定された日付のデータを元に、グラフを描画できる様にしている
+	\item 指定のデータファイルを開いて、最初の20文字までは、予めmatplotlibのdatesに対応した様式の日付文字列にしているので、それをUnixの日付けに変換している
+	\item 25文字目以降は、測定した電圧の値だが、改行文字が付いていたりするので、.strip()によってホワイトスペースを除去して、実数に変換している
+	\item 日付と電圧のリストを作って、それをgraph\_plot()関数に渡して作図させている
+\end{itemize}
+
+\begin{itembox}[l]{/home/mat/Documents/dayly.py}
+	\begin{verbatim}
+import sys
+from datetime import datetime as dt
+import matplotlib.dates as mdates
+from myplot import graph_plot
+
+dirstr = '/home/mat/Documents'
+today = dt.now().strftime('%Y-%m-%d')
+if len(sys.argv) > 1:
+  today = sys.argv[1]
+
+list0=[]
+with open(dirstr + "/data/" + today + ".txt") as f:
+  for line in f:
+    datestr = line[:20].strip()
+    datev = mdates.datestr2num(datestr)
+    value = float(line[25:].strip())
+    list0.append([datev, value])
+
+graph_plot(list0, dirstr, today, False)
+	\end{verbatim}
+\end{itembox}
+
+\subsection{週毎の処理}
+
+この処理はcronによって、毎週日曜日の朝、0時1分に起動される
+
+このshell（weekly.sh）では、0時0分より後の時刻ならば仮想環境venv11に移って、Python のプログラム（weekly.py）を起動し、終わったら仮想環境鵜から抜けている
+
+Pythonのプログラムは、第1引数に日付を受け取ることができる様にしている
+
+\begin{itembox}[l]{/home/mat/Documents/weekly.sh}
+	\begin{verbatim}
+#!/usr/bin/bash
+dir='/home/mat/Documents'
+dates=`date +%Y-%m-%d`
+hour=`date +%H`
+minu=`date +%M`
+if [ "${hour}" -ge 0 ]; then
+  if [ "${minu}" -gt 0 ]; then
+    source "${dir}"/venv11/bin/activate
+      "${dir}"/venv11/bin/python3 "${dir}"/weekly.py "${dates}"
+    deactivate
+  fi
+fi
+	\end{verbatim}
+\end{itembox}
+
+\subsection{週毎処理のプログラム}
+
+\begin{itemize}
+	\item myplot.pyからgraph\_plot()関数をimportしている
+	\item 第1引数で処理対象にする最終日付を受け取ることができる様にしている
+	\item 指定された処理対象の最終日付から、7日前の日付を求めて、7日間の日付のリストdatelistを作っている
+	\item 7日間の日付リストdatelistから1日ずつ取り出しては、そのファイル名のデータをdataフォルダから読み出し、日付の変換と電圧の実数への変換を行い、それらのデータのリストをlist0に追記していっている
+	\item もし、指定した日付のデータファイルがなかった場合は、例外処理で受けて黙って次の日付のファイルのデータ取得に移る様にしている
+	\item graph\_plot()関数にlist0を渡してグラフの作図をさせている
+\end{itemize}
+
+\begin{itembox}[l]{/home/mat/Documents/weekly.py}
+	\begin{verbatim}
+from datetime import datetime as dt, timedelta
+import sys, matplotlib.dates as mdates
+from myplot import graph_plot
+
+dirstr = '/home/mat/Documents'
+s_format = '%Y-%m-%d'
+today = dt.now()
+if len(sys.argv) > 1:
+  today = dt.strptime(sys.argv[1], s_format)
+startstr = (today - timedelta(days=7)).strftime(s_format)
+
+datelist = []
+for i in range(7):
+  day = today - timedelta(days=(7-i))
+  datelist.append(day.strftime(s_format))
+
+list0=[]
+for fname in datelist:
+  try:
+    with open(dirstr + "/data/" + fname + ".txt") as f:
+      for line in f:
+        datestr = line[:20].strip()
+        datev = mdates.datestr2num(datestr)
+        value = float(line[25:].strip())
+        list0.append([datev, value])
+  except FileNotFoundError:
+    continue
+
+graph_plot(list0, dirstr, startstr, True)
+	\end{verbatim}
+\end{itembox}
+
+以下は、週毎処理が出力する画像である。4月21日（日曜日）の0時1分にcronによって起動され、実行されたものだが、フォルダdataの中には、測定を始めた4月16日（火曜日）から、4月20日（土曜日）までの5日分のファイルがあるだけである。本来なら1週間前の日曜日（4月14日）のデータから週毎処理の対象となるところだが、プログラムの中ではFileNotFoundErrorの例外を捕捉して、とにかくcontinueによって処理を継続させているため、何事もなかったかの様に、データファイルの所在する火曜日以降がグラフに作図されている
+
+また、日毎処理のプログラムdayly.pyと全く同じグラフ作図の関数（myplot.pyの中のgraph\_plot()関数）を使っているのだが、横軸の設定がmatplotlibのdates（mdatesとしてプログラム中では使っている）によって、自動的に調整されているのが分かる（便利）
+
+\begin{figure}[htbp]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Weekly_2024-04-11.png}
+		\caption{weekly.pyの出力}
+	\end{minipage}
+	%\hspace{1.0cm}
+	%\begin{minipage}[b]{0.45\linewidth}
+	%\centering
+	%\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+	%\caption{ADRSZOD:TP401A}
+	%\end{minipage}
+\end{figure}
+
+\newpage
+
+\subsection{測定データグラフの実時間描画}
+
+\begin{itemize}
+	\item RTPlotクラスに必要な関数類をまとめた
+	\item ポイントは、 plt.show() を使わず、plt.pause(1.0)を使うことと、tail -f をプログラム上で実現することの2点である
+	\item self.xとself.yのリストに順にデータを追記していき、新たなデータがw.txtに追加されたタイミングでplot.pause(1.0)としている（引数の値を0.1や0.01にするとRaspberry Piでは全て描画しきれないので注意）
+	\item tail\_f()関数では、コマンド tail -f w.txt をPythonのプログラムで実現したもの（指定したファイルの最終行が追記されるまでcontinueで待っている）である
+\end{itemize}
+
+\begin{breakbox}%[l]{/home/mat/Documents/rtplot.py}
+	\begin{verbatim}
+import sys, time, numpy as np, pandas as pd
+from matplotlib import style, pyplot as plt, dates as mdates
+from datetime import datetime as dt, timedelta
+
+class RTPlot:
+    def dateproc(self):
+        #s_format = '%Y-%m-%d, %H:%M:%S'
+        s_format0 = '%Y-%m-%d, 00:00:00'
+        today = dt.now()
+        tomor = today + timedelta(days=1)
+        self.todaystr = today.strftime(s_format0)
+        self.tomorstr = tomor.strftime(s_format0)
+
+    def readdata(self, fname):
+        try:
+            with open(fname, 'r') as f:
+                for line in f:
+                    self.chop(line)
+        except FileNotFoundError:
+            print(f'File{fname} not found')
+
+    def __init__(self, fname):
+        self.fname = fname
+        self.x = []
+        self.y = []
+        self.ims = []
+        self.dateproc()
+        self.readdata(fname)
+        self.fig, self.ax = plt.subplots()
+        locator = mdates.AutoDateLocator()
+        formatter = mdates.ConciseDateFormatter(locator)
+        self.ax.xaxis.set_major_locator(locator)
+        self.ax.xaxis.set_major_formatter(formatter)
+        xmin = mdates.datestr2num(self.todaystr)
+        xmax = mdates.datestr2num(self.tomorstr) 
+        self.ax.set_xlim([xmin, xmax])
+        ymin, ymax = 0.52, 1.25
+        self.ax.set_ylim([ymin, ymax])
+        self.ax.set_title("Smel Level : " + self.todaystr[:10] +\
+                          " :Real time plot")
+        self.ax.set_xlabel('Date-Time')
+        self.ax.set_ylabel('Volt')
+        matplotlib.style.use('ggplot')
+        im, = self.ax.plot(self.x, self.y)
+        self.ims.append(im)
+
+    def chop(self, line):
+        datestr = line[:20].strip()
+        datev = mdates.datestr2num(datestr)
+        value = float(line[25:].strip())
+        self.x.append(datev)
+        self.y.append(value)
+
+    def update(self):
+        if len(self.ims) > 0:
+            im = self.ims.pop()
+            im.remove()
+        im, = self.ax.plot(self.x, self.y)
+        self.ims.append(im)
+
+    def tail_f(self):
+        try:
+            with open(self.fname, 'r') as f:
+                f.seek(0, 2)
+                while True:
+                    line = f.readline()
+                    if not line:
+                        time.sleep(1)
+                        continue
+                    return line.strip()
+        except FileNotFoundError:
+            print(f'File{self.fname} not found')
+        return ""
+
+if __name__=="__main__":
+    dirstr = '/home/mat/Documents'
+    fname = dirstr + '/w.txt'
+    if len(sys.argv) > 1:
+        fname = dirstr + '/' + sys.argv[1]
+    rtp = RTPlot(fname)
+    tomorrow = dt.now() + timedelta(days=1)
+    while dt.now() < tomorrow:
+        plt.pause(1)
+        line = rtp.tail_f()
+        print("[info.log]", line)
+        rtp.chop(line)
+        rtp.update()
+    rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr+'.png')
+	\end{verbatim}
+\end{breakbox}
+
+実時間処理の画面は次の様になる。この画面を見ると概ね予定通りの出力ができているのだが、style.use('ggplot') の指定が無視されている（なぜなのか、現段階で「私には」分かっていない）
+
+\begin{figure}[htbp]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Figure_1.png}
+		\caption{実時間出力の例（途中経過：4月19日の20時頃）}
+	\end{minipage}
+	%\hspace{1.0cm}
+	%\begin{minipage}[b]{0.45\linewidth}
+	%\centering
+	%\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+	%\caption{ADRSZOD:TP401A}
+	%\end{minipage}
+\end{figure}
+
+\newpage
+
+\section{参考文献}
+
+\begin{itemize}
+	\item 臭気センサ拡張基板とそのサンプルプログラム\\
+	\url{https://github.com/bit-trade-one/RasPi-Zero-One-Series}
+	\item matplotlib が認識する日付の書式\\
+	\url{https://matplotlib.org/stable/api/dates_api.html}
+	\item プロセス置換\\
+	Daniel J.Barrett著、オライリー・ジャパン「Efficient Linuxコマンドライン」初版第1刷、p.157 のコラム記事
+\end{itemize}
+
+\end{document}          
