@@ -60,7 +60,7 @@ class RTPlot:
                         continue
                     return line.strip()
         except FileNotFoundError:
-            print(f'File{fname} not found')
+            print(f'File{self.fname} not found')
         return ""
 
     def chop(self, line):

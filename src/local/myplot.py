@@ -17,7 +17,7 @@ def graph_plot(list0, dirstr, datestr, weekly=False):
     ax.xaxis.set_major_formatter(formatter)
     ymax = np.array([y.max(), 1.25]).max()
     ymin = np.array([y.min(), 0.52]).min()
-    ax.set_ylim([ymin, ymax])
+    ax.set_ylim([0.52, ymax])
     ax.set_xlabel('Date-Time')
     ax.set_ylabel('Volt')
     if weekly:
