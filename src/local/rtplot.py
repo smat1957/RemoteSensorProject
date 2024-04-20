@@ -61,7 +61,7 @@ class RTPlot:
                     return line.strip()
         except FileNotFoundError:
             print(f'File{self.fname} not found')
-        return ""
+        return
 
     def chop(self, line):
         datestr = line[:20].strip()
