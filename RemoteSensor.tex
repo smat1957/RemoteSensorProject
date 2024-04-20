@@ -99,10 +99,8 @@
 	\item adrszOD.pyは、ch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを出力する様にしている
 	\item 測定の日付をdateコマンドで作成しているが、これは後ほどPythonのmatplotlibに合わせて、別途の整形処理が必要になることのない様に、書式を（年月日と時分秒の間は、半角カンマ＋半角スペース1個）の格好になるように整形している
 	\item 日付の出力と、臭気センサの値が１行になる様にするため、pasteコマンドを使っている
-	\item paste のオペランドにしている、<(date +....)　と、<(python3 adrszOD.py...)との2つのコマンドを、<(any command) と囲むことによって、2つのファイルの様な扱いができる（プロセス置換）
+	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各のコマンドを、<(any command) の形に囲むことによって、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン のp.156に、プロセス置換の解説がある}）
 \end{itemize}
-
-（※「Efficient Linuxコマンドライン」オライリー・ジャパン のp.156に、プロセス置換の解説あり）
 
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
 	\begin{verbatim}
@@ -195,7 +193,7 @@ cronの仕組みを使って、3つの時刻指定の処理を登録した
 	\end{verbatim}
 \end{itembox}
 
-ここで、MAILTO="" としているのは、「指定時刻にcronが処理を起動したよ」というメールを送信するためにsmtpを起動しようとして失敗し、指定の処理が起動されないという現象に対する対応である（postfixをインストールせよという者もいるが、特にメールの知らせが不要ならこのやり方が最も簡易な解決方法になる）
+ここで、MAILTO="" としているのは、「指定時刻にcronが処理を起動したよ」というメールを送信するためにsmtpを起動しようとして失敗し、指定の処理が起動されないという現象に対する対応である\footnote{postfixをインストールせよという説もあるが、特にメールの知らせが不要ならこのやり方が最も簡易な解決方法になる}
 
 \begin{screen}
 	\begin{verbatim}
@@ -302,10 +300,8 @@ dayly.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 
 横軸に日付と時刻（データは5分毎）を置くため、少し工夫が必要になる
 
-（\url{https://matplotlib.org/stable/api/dates_api.html}
-の記事が参考になった）
-
-ポイントは、matplotlibが理解する日付の様式で書いたものを使うと、matplotlibのdatesに、locatorとformatterを自動生成させて、それ以下の全てを任せきることができる
+ポイントは、matplotlibが理解する日付の様式で書いたものを使うと、matplotlibのdatesに、locatorとformatterを自動生成させて、それ以下の全てを任せきることができる\footnote{\url{https://matplotlib.org/stable/api/dates_api.html}
+	の記事が参考になる}
 
 \begin{itembox}[l]{/home/mat/Documents/myplot.py}
 	\begin{verbatim}
@@ -470,7 +466,7 @@ graph_plot(list0, dirstr, startstr, True)
 
 \begin{itemize}
 	\item RTPlotクラスに必要な関数類をまとめた
-	\item ポイントは、 plt.show() を使わず、plt.pause(1.0)を使うことと、tail -f をプログラム上で実現することの2点である
+	\item ポイントとなるのは、 plt.show() を使わず、plt.pause(1.0)を使うこと、tail -f をプログラム上で実現することの2点である
 	\item self.xとself.yのリストに順にデータを追記していき、新たなデータがw.txtに追加されたタイミングでplot.pause(1.0)としている（引数の値を0.1や0.01にするとRaspberry Piでは全て描画しきれないので注意）
 	\item tail\_f()関数では、コマンド tail -f w.txt をPythonのプログラムで実現したもの（指定したファイルの最終行が追記されるまでcontinueで待っている）である
 \end{itemize}
