@@ -97,7 +97,7 @@
 	\item Raspberrin Pi Zero WH 上に用意したshell（sensor.sh）だが、このshellは別のRaspberryPiマシンからsshによって起動される
 	\item i2Cで接続された、臭気センサからの出力（電圧値）を、Pythonのプログラム（adrszOD.py）によって読み取ることができる
 	\item adrszOD.pyは、ch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを出力する様にしている
-	\item 測定の日付をdateコマンドで作成しているが、これは後ほどPythonのmatplotlibに合わせて、別途処理が必要になることのない様に、書式を（年月日と時分秒の間は、半角カンマ＋半角スペース1個）の格好になるように整形している
+	\item 測定の日付をdateコマンドで作成しているが、これは後ほどPythonのmatplotlibに合わせて、別途の整形処理が必要になることのない様に、書式を（年月日と時分秒の間は、半角カンマ＋半角スペース1個）の格好になるように整形している
 	\item 日付の出力と、臭気センサの値が１行になる様にするため、pasteコマンドを使っている
 	\item paste のオペランドにしている、<(date +....)　と、<(python3 adrszOD.py...)との2つのコマンドを、<(any command) と囲むことによって、2つのファイルの様な扱いができる（プロセス置換）
 \end{itemize}
