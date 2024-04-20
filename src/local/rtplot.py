@@ -84,11 +84,11 @@ if __name__=="__main__":
         fname = dirstr + '/' + sys.argv[1]
     rtp = RTPlot(fname)
     tomorrow = dt.now() + timedelta(days=1)
-    while dt.now() < tomorrow:
+    while tomorrow - dt.now() > timedelta(minutes=5):
         plt.pause(1)
         line = rtp.tail_f()
         print("[info.log]", line)
         rtp.chop(line)
         rtp.update()
-    rtp.fig.savefig(dirstr+'/R_'+rtp.todaystr+'.png')
+    rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr+'.png')
 

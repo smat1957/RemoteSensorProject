@@ -449,7 +449,7 @@ graph_plot(list0, dirstr, startstr, True)
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
-		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Weekly_2024-04-11.png}
+		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Weekly_2024-04-14.png}
 		\caption{weekly.pyの出力}
 	\end{minipage}
 	%\hspace{1.0cm}
@@ -554,7 +554,7 @@ if __name__=="__main__":
         fname = dirstr + '/' + sys.argv[1]
     rtp = RTPlot(fname)
     tomorrow = dt.now() + timedelta(days=1)
-    while dt.now() < tomorrow:
+    while tomorrow - dt.now() > timedelta(minutes=5):
         plt.pause(1)
         line = rtp.tail_f()
         print("[info.log]", line)
@@ -563,6 +563,8 @@ if __name__=="__main__":
     rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr+'.png')
 	\end{verbatim}
 \end{breakbox}
+
+mainでの反復条件だが、当初 「dt.now() < tomorrow の間繰り返せ」としていたが、この条件だと tail\_f() 関数から戻れなくなる（23時55分に w.txt が更新された後は、tail\_f() の中でcontinue がひたすら繰り返されている）ので、最後に tail\_f() から戻ったタイミングで while を break しなければならない。w.txtの最後の更新が23時55分を過ぎた数秒後辺りだとすれば、それが tail\_f() がら戻る最後のタイミングであり、whileをbreakする時として捉えたいので、反復を続ける条件を「tomorrow - dt.now() > timedelta(minutes=5)」とした。（もし、minutes=4などとしてしまったら、最終回になるべき呼び出しのタイミング後に、すでに tail\_f() の中に入ってしまっているかもしれない）
 
 実時間処理の画面は次の様になる。この画面を見ると概ね予定通りの出力ができているのだが、style.use('ggplot') の指定が無視されている（なぜなのか、現段階で「私には」分かっていない）
 
