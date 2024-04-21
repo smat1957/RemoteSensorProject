@@ -99,7 +99,7 @@
 	\item adrszOD.pyはch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出している
 	\item dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要になることのない様、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になるように整形している
 	\item 日付とセンサの出力する値が１行になる様にするため、pasteコマンドを使っている
-	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各々のコマンドを、<(any command) の形に囲むことにより、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン のp.156に、プロセス置換の解説がある}）
+	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各々のコマンドを、<(any command) の形に囲むことにより、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン 初版第1刷のp.156に、プロセス置換の解説がある}）
 \end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
@@ -193,7 +193,7 @@ cronの仕組みを使って、3つの時刻指定の処理を登録した
 	\end{verbatim}
 \end{itembox}
 
-ここで、MAILTO="" としているのは、「指定時刻にcronが処理を起動したよ」というメールを送信するためにsmtpを起動しようとして失敗し、指定の処理が起動されないという現象に対する対応である\footnote{postfixをインストールせよという説もあるが、特にメールの知らせが不要ならこのやり方が最も簡易な解決方法になる}
+ここで、MAILTO="" としているのは、「指定時刻にcronが処理を起動したよ」というメールを送信するためにsmtpを起動しようとして失敗し、指定の処理が起動されないという現象に対する対応である\footnote{postfixやsendmailなど、SMTPの何某かをインストールせよという説もあるが、特にメールの知らせが不要ならこのやり方が最も簡易な解決方法になる}
 
 \begin{screen}
 	\begin{verbatim}
@@ -534,6 +534,7 @@ class RTPlot:
         self.ims.append(im)
 
     def tail_f(self):
+        enter = dt.now()
         try:
             with open(self.fname, 'r') as f:
                 f.seek(0, 2)
@@ -541,11 +542,13 @@ class RTPlot:
                     line = f.readline()
                     if not line:
                         time.sleep(1)
+                        if dt.now() - enter > timedelta(minutes=5):
+                            return
                         continue
                     return line.strip()
         except FileNotFoundError:
             print(f'File{self.fname} not found')
-        return ""
+        return
 
 if __name__=="__main__":
     dirstr = '/home/mat/Documents'
@@ -554,17 +557,18 @@ if __name__=="__main__":
         fname = dirstr + '/' + sys.argv[1]
     rtp = RTPlot(fname)
     tomorrow = dt.now() + timedelta(days=1)
-    while tomorrow - dt.now() > timedelta(minutes=5):
+    while dt.now() < tomorrow:
         plt.pause(1)
         line = rtp.tail_f()
-        print("[info.log]", line)
-        rtp.chop(line)
-        rtp.update()
+        if line is not None:
+            print("[info.log]", line)
+            rtp.chop(line)
+            rtp.update()
     rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr+'.png')
 	\end{verbatim}
 \end{breakbox}
 
-mainでの反復条件だが、当初 「dt.now() < tomorrow の間繰り返せ」としていたが、この条件だと tail\_f() 関数から戻れなくなる（23時55分に w.txt が更新された後は、tail\_f() の中でcontinue がひたすら繰り返されている）ので、最後に tail\_f() から戻ったタイミングを捉えて while を break しなければならない。w.txtの最後の更新が23時55分を過ぎた数秒後辺りだとすれば、それが tail\_f() がら戻る最後のタイミングであり、whileをbreakする時なので、反復を続ける条件を「tomorrow - dt.now() > timedelta(minutes=5)」とした。（もし、minutes=4などとしてしまったら、最終回になるべき呼び出しから戻った後には、 やおらtail\_f() の中に飛んでしまい、戻れなくなっているかもしれない）
+tail\_f()関数の中では、5分を超えてcontinueを繰り返している場合はNoneを返す様にしているので、mainの中の繰り返し処理whileの中でその事を（PEP8が可読性の観点から推奨している書き方である） is not None によって判定している
 
 実時間処理の画面は次の様になる
 

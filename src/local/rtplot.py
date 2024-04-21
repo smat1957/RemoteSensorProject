@@ -50,6 +50,7 @@ class RTPlot:
         self.ims.append(im)
 
     def tail_f(self):
+        enter = dt.now()
         try:
             with open(self.fname, 'r') as f:
                 f.seek(0, 2)
@@ -57,6 +58,8 @@ class RTPlot:
                     line = f.readline()
                     if not line:
                         time.sleep(1)
+                        if dt.now()-enter > timedelta(minutes=5):
+                            return
                         continue
                     return line.strip()
         except FileNotFoundError:
@@ -84,11 +87,12 @@ if __name__=="__main__":
         fname = dirstr + '/' + sys.argv[1]
     rtp = RTPlot(fname)
     tomorrow = dt.now() + timedelta(days=1)
-    while tomorrow - dt.now() > timedelta(minutes=5):
+    while dt.now() < tomorrow:
         plt.pause(1)
         line = rtp.tail_f()
-        print("[info.log]", line)
-        rtp.chop(line)
-        rtp.update()
+        if line is not None:
+            print("[info.log]", line)
+            rtp.chop(line)
+            rtp.update()
     rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr+'.png')
 
