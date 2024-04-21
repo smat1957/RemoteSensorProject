@@ -177,7 +177,7 @@ if __name__=="__main__":
 
 \subsection{cronによる時刻指定処理}
 
-cronの仕組みを使って、3つの時刻指定の処理を登録した
+cronの仕組みを使うことにする（3つの時刻指定の処理を登録している）
 \begin{enumerate}
 	\item[(1)] 5分ごとに、リモートセンサの値を読み取る処理、rsensor.sh を起動する
 	\item[(2)] 毎日23時56分になったら、その日1日分の測定データを退避する処理、dayly.sh を起動する
@@ -572,8 +572,6 @@ tail\_f()関数の中では、5分を超えてcontinueを繰り返している�
 
 実時間処理の画面は次の様になる
 
-この画面を見ると概ね予定通りの出力になっているのだが、style.use('ggplot') の指定が無視されているのは気になる（なぜなのか、現段階で「私には」分かっていない）
-
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
@@ -587,6 +585,8 @@ tail\_f()関数の中では、5分を超えてcontinueを繰り返している�
 	%\caption{ADRSZOD:TP401A}
 	%\end{minipage}
 \end{figure}
+
+この画面を見ると概ね予定通りの出力になっているのだが、style.use('ggplot') の指定が無視されているのは気になる（なぜなのか、現段階で「私には」分かっていない）
 
 \newpage
 
