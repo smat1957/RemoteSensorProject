@@ -588,9 +588,26 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 
 この画面を見ると概ね予定通りの出力になっているのだが、style.use('ggplot') の指定が無視されているのは気になる（なぜなのか、現段階で「私には」分かっていない）
 
-\section{新たなマシンへの移行手順}
+\section{新たなシステムへの移行手順}
 
-ここまで作成してきたものを、新たなマシン（Raspberry Pi）へ移行する際、必要になる手続きについてまとめておく（新しいマシンのOSが導入され、ネットワークの設定を終えた後の手続きです）
+\subsection{ローカル・マシンの移行}
+
+ここまで作成してきたものを、新たなマシン（Raspberry Pi）へ移行する際、必要になる手続きについてまとめておく
+（新しいマシンのOSが導入され、ネットワークの設定を終えた後の手続きになる）
+
+\begin{figure}[htbp]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.5]{figs/eps/ikou.eps}
+		\caption{ローカル・マシンの移行}
+	\end{minipage}
+	%\hspace{1.0cm}
+	%\begin{minipage}[b]{0.45\linewidth}
+	%\centering
+	%\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+	%\caption{ADRSZOD:TP401A}
+	%\end{minipage}
+\end{figure}
 
 以下の手続きはその都度全て、/home/mat/Documents の直下で実施するものとする
 
@@ -615,6 +632,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 		pip install pandas==1.4.2
 		pip install matplotlib==3.5.2
 		pip install scikit-learn==1.1.1
+		pip install openpyxl==3.0.10
 		deactivate
 	\end{verbatim}
 	\item dataフォルダとfigsフォルダを移行する
@@ -627,6 +645,10 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 		scp mat@192.168.3.21:/home/mat/Documents/*.sh ./
 		scp mat@192.168.3.21:/home/mat/Documents/*.py ./
 	\end{verbatim}
+	ここで、各shellには実行可能属性がついている事を確認する ls -l *.sh\\
+	もし付いていなかったら付ける chmod +x *.sh\\
+	また、リモートマシンのIPアドレス、ユーザ名とそのパスワードが変わる場合は、ここで rsensor.sh の当該箇所（露に記述している）を編集する\\
+	Pythonのプログラムに実行可能属性は不要である
 	\item cronに時刻指定手続きを登録する（crontab -e）
 	\begin{verbatim}
 		MAILTO=""
@@ -658,7 +680,23 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	\end{verbatim}
 \end{enumerate}
 
-\newpage
+\subsection{リモート・マシンの移行}
+
+新しいリモート・マシンへの移行は次の通り\\リモート・マシンのOSの導入とネットワークの設定を終えていること
+
+\begin{enumerate}
+	\item configurationで、sshとi2cを有効にする
+	\item 最新の状態に更新する
+	\begin{verbatim}
+		sudo apt update
+		sudo apt dist-upgrade
+	\end{verbatim}
+	\item adrszOD.py を導入する
+	\item sensor.sh を導入して、実行可能属性をつける（chmod +x sensor.sh）
+	\item /home/mat/Documents/sensor.sh を実行して、現在日時とセンサの電圧、それぞれ適切な値が１行で出力される事を確認する
+\end{enumerate}
+
+%\newpage
 
 \section{参考文献}
 
