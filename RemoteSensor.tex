@@ -560,7 +560,7 @@ if __name__=="__main__":
     if len(sys.argv) > 1:
         fname = dirstr + '/' + sys.argv[1]
     rtp = RTPlot(fname)
-    tomorrow = dt.now() + timedelta(days=1)
+    tomorrow = dt.strptime(rtp.tomorstr, '%Y-%m-%d, 00:00:00')
     while dt.now() < tomorrow:
         plt.pause(1)
         line = rtp.tail_f()
@@ -632,11 +632,11 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 		source venv11/bin/activate
 		python3 -m pip install -U pip
 		pip install numpy==1.22.4
-		pip install scipy==1.8.1
+		pip install scipy
 		pip install pandas==1.4.2
-		pip install matplotlib==3.5.2
-		pip install scikit-learn==1.1.1
-		pip install openpyxl==3.0.10
+		pip install matplotlib
+		pip install scikit-learn
+		pip list -o
 		deactivate
 	\end{verbatim}
 	\item dataフォルダとfigsフォルダを移行する
