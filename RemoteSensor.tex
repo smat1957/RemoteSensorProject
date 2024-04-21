@@ -55,7 +55,7 @@
 
 \renewcommand{\lstlistingname}{}
 
-\setcounter{secnumdepth}{4}
+\setcounter{secnumdepth}{6}
 \setcounter{secnumdepth}{6}
 
 % Title Page
@@ -175,7 +175,7 @@ if __name__=="__main__":
 
 %\subsection{処理の概要}
 
-\subsection{cronによる時刻指定処理}
+\subsection{cronによる時刻指定の処理}
 
 cronの仕組みを使うことにする（3つの時刻指定の処理を登録している）
 \begin{enumerate}
@@ -209,7 +209,7 @@ cronの仕組みを使うことにする（3つの時刻指定の処理を登録
 
 \newpage
 
-\subsection{リモートセンサの処理をローカルから起動}
+\subsection{リモートセンサの処理をローカルマシンから起動する}
 
 リモート（192.168.3.27）のRaspberry Pi Zero WH に接続されている臭気センサの値を読みとるshell（sensor.sh）を、ローカル（192.168.3.21）のマシンRaspberry Pi からssh を使って起動するための shell（rsensor.sh）であり、cronによって5分ごとに起動される
 
@@ -252,8 +252,8 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 	\item 蓄積された1日分の測定データ w.txt を、bkup.txt という名前のファイルにコピーしている
 	\item w.txt を、dataフォルダ以下に、「今日の日付.txt」 という名前に変更して保存している
 	\item 空のファイル w.txt を次の日の測定データの蓄積場所のために用意している（ touch）
-	\item Pythonの仮想環境venv11に入って、daily.py を起動している（第1引数にdataフォルダ以下に保存した測定データファイルの名前＝年月日を指定している）
-	\item Pythonの仮想環境venv11を終えている
+	\item Pythonの仮想環境venv11に入って、dayly.py を起動している（第1引数にdataフォルダ以下に保存した測定データファイルの名前＝年月日を指定している）
+	\item プログラムの実行を終えたら、Pythonの仮想環境venv11から抜けている
 \end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/dayly.sh}
@@ -276,72 +276,12 @@ fi
 	\end{verbatim}
 \end{itembox}
 
-\newpage
-
-このPythonのプログラムを実行した結果として、次の様な1日分のデータの変化をグラフ化したものを、figsフォルダ以下に 「今日の日付.png」 という名称で保存している
-
-\begin{figure}[htbp]
-	\begin{minipage}[b]{1.0\linewidth}
-		\centering
-		\includegraphics[keepaspectratio, scale=0.8]{figs/png/2024-04-16.png}
-		\caption{dayly.pyの出力（4月16日の0時から24時まで）}
-	\end{minipage}
-	%\hspace{1.0cm}
-	%\begin{minipage}[b]{0.45\linewidth}
-	%\centering
-	%\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
-	%\caption{ADRSZOD:TP401A}
-	%\end{minipage}
-\end{figure}
-
-\subsection{グラフ描画のための関数（myplot.py）}
-
-dayly.py と weekly.py で共通に呼び出しているgraph\_plot()関数を定義している
-
-横軸に日付と時刻（データは5分毎）を置くため、少し工夫が必要になる
-
-ポイントは、matplotlibが理解する日付の様式で書いたものを使うと、matplotlibのdatesに、locatorとformatterを自動生成させて、それ以下の全てを任せきることができる\footnote{\url{https://matplotlib.org/stable/api/dates_api.html}
-	の記事が参考になる}
-
-\begin{itembox}[l]{/home/mat/Documents/myplot.py}
-	\begin{verbatim}
-import numpy as np, pandas as pd
-from matplotlib import pyplot as plt, style, dates as mdates
-
-def graph_plot(list0, dirstr, datestr, weekly=False):
-  df = pd.DataFrame(list0, columns=["DateVal", "Value"])
-  matplotlib.style.use('ggplot')
-  fig, ax = plt.subplots()
-  x = df.loc[:,"DateVal"].values
-  y = df.loc[:,"Value"].values
-  locator = mdates.AutoDateLocator()
-  formatter = mdates.ConciseDateFormatter(locator)
-  ax.xaxis.set_major_locator(locator)
-  ax.xaxis.set_major_formatter(formatter)
-  ymax = np.array([y.max(), 1.25]).max()
-  ymin = np.array([y.min(), 0.52]).min()
-  ax.set_ylim([ymin, ymax])
-  ax.set_xlabel('Date-Time')
-  ax.set_ylabel('Volt')
-  if weekly:
-    titlestr = "Smel Level : " + datestr + "(Weekly)"
-    figpath = dirstr + "/figs/" + "Weekly_" + datestr
-  else:
-    titlestr = "Smel Level : " + datestr
-    figpath = dirstr + "/figs/" + datestr
-  ax.set_title(titlestr)
-  ax.plot(x,y)
-  fig.savefig(figpath + '.png')
-  plt.show()	
-	\end{verbatim}
-\end{itembox}
-
-\newpage
+%\newpage
 
 \subsection{日毎処理のプログラム}
 
 \begin{itemize}
-	\item myplot.py から、graph\_plot() 関数をimport している
+	\item myplot.py から、graph\_plot() 関数をimport している（この関数の詳細は後述）
 	\item 第1引数に指定があったら、そこで指定された日付のデータを元に、グラフを描画できる様にしている
 	\item 指定のデータファイルを開いて、最初の20文字までは、予めmatplotlibのdatesに対応した様式の日付文字列にしているので、それをUnixの日付けに変換している
 	\item 25文字目以降は、測定した電圧の値だが、改行文字が付いていたりするので、.strip()によってホワイトスペースを除去して、実数に変換している
@@ -372,9 +312,71 @@ graph_plot(list0, dirstr, today, False)
 	\end{verbatim}
 \end{itembox}
 
+\newpage
+
+このPythonのプログラムを実行した結果として、次の様な1日分のデータの変化をグラフ化したものが得られる（これはfigsフォルダ以下に 「今日の日付.png」 という名称で保存している）
+
+\begin{figure}[htbp]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.8]{figs/png/2024-04-16.png}
+		\caption{dayly.pyの出力（4月16日の0時から24時まで）}
+	\end{minipage}
+	%\hspace{1.0cm}
+	%\begin{minipage}[b]{0.45\linewidth}
+	%\centering
+	%\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+	%\caption{ADRSZOD:TP401A}
+	%\end{minipage}
+\end{figure}
+
+\subsection{グラフ描画のための関数（myplot.py）}
+
+dayly.py と weekly.py で共通に呼び出しているgraph\_plot()関数を定義している
+
+横軸に日付と時刻（データは5分毎）を置くため、少し工夫が必要になる
+
+ポイントは、matplotlibが理解する日付の様式で書いたものを使うと、matplotlibのdatesに、locatorとformatterを自動生成させて、それ以下の全てを任せきることができる\footnote{\url{https://matplotlib.org/stable/api/dates_api.html}
+	の記事が参考になる}
+
+\begin{itembox}[l]{/home/mat/Documents/myplot.py}
+	\begin{verbatim}
+		import numpy as np, pandas as pd
+		from matplotlib import pyplot as plt, style, dates as mdates
+		
+		def graph_plot(list0, dirstr, datestr, weekly=False):
+		　　df = pd.DataFrame(list0, columns=["DateVal", "Value"])
+		　　matplotlib.style.use('ggplot')
+		　　fig, ax = plt.subplots()
+		　　x = df.loc[:,"DateVal"].values
+		　　y = df.loc[:,"Value"].values
+		　　locator = mdates.AutoDateLocator()
+		　　formatter = mdates.ConciseDateFormatter(locator)
+		　　ax.xaxis.set_major_locator(locator)
+		　　ax.xaxis.set_major_formatter(formatter)
+		　　ymax = np.array([y.max(), 1.25]).max()
+		　　ymin = np.array([y.min(), 0.52]).min()
+		　　ax.set_ylim([ymin, ymax])
+		　　ax.set_xlabel('Date-Time')
+		　　ax.set_ylabel('Volt')
+		　　if weekly:
+		　　　　titlestr = "Smel Level : " + datestr + "(Weekly)"
+		　　　　figpath = dirstr + "/figs/" + "Weekly_" + datestr
+		　　else:
+		　　　　titlestr = "Smel Level : " + datestr
+		　　　　figpath = dirstr + "/figs/" + datestr
+		　　ax.set_title(titlestr)
+		　　ax.plot(x,y)
+		　　fig.savefig(figpath + '.png')
+		　　plt.show()	
+	\end{verbatim}
+\end{itembox}
+
+\newpage
+
 \subsection{週毎の処理}
 
-この処理はcronによって、毎週日曜日の朝、0時1分に起動される
+この処理はcronによって、毎週日曜日の朝0時1分に起動される
 
 このshell（weekly.sh）では、0時0分より後の時刻ならば仮想環境venv11に移って、Python のプログラム（weekly.py）を起動し、終わったら仮想環境鵜から抜けている
 
@@ -442,6 +444,8 @@ graph_plot(list0, dirstr, startstr, True)
 	\end{verbatim}
 \end{itembox}
 
+\newpage
+
 以下は、週毎処理が出力する画像である。4月21日（日曜日）の0時1分にcronによって起動され実行されたものだが、フォルダdataの中には、測定を始めた4月16日（火曜日）から、4月20日（土曜日）までの5日分のファイルがあるだけである。本来なら1週間前の日曜日（4月14日）のデータから週毎処理の対象となるところだが、プログラムの中ではFileNotFoundErrorの例外を捕捉して、とにかくcontinueによって処理を継続させているため、何事もなかったかの様に、データファイルの所在する火曜日以降がグラフに作図されている
 
 また、日毎処理のプログラムdayly.pyと全く同じグラフ作図の関数（myplot.pyの中のgraph\_plot()関数）を使っているのだが、横軸の設定がmatplotlibのdates（mdatesとしてプログラム中では使っている）によって、自動的に調整されているのが分かる（便利）
@@ -460,9 +464,9 @@ graph_plot(list0, dirstr, startstr, True)
 	%\end{minipage}
 \end{figure}
 
-\newpage
+%\newpage
 
-\subsection{測定データグラフの実時間描画}
+\subsection{測定データのグラフを実時間で作図する}
 
 \begin{itemize}
 	\item RTPlotクラスに必要な関数類をまとめた
@@ -590,7 +594,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 
 \section{新たなシステムへの移行手順}
 
-\subsection{ローカル・マシンの移行}
+\subsection{ローカルマシンの移行}
 
 ここまで作成してきたものを、新たなマシン（Raspberry Pi）へ移行する際、必要になる手続きについてまとめておく
 （新しいマシンのOSが導入され、ネットワークの設定を終えた後の手続きになる）
@@ -598,8 +602,8 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
-		\includegraphics[keepaspectratio, scale=0.5]{figs/eps/ikou.eps}
-		\caption{ローカル・マシンの移行}
+		\includegraphics[keepaspectratio, scale=0.4]{figs/eps/ikou.eps}
+		\caption{ローカルマシンの移行}
 	\end{minipage}
 	%\hspace{1.0cm}
 	%\begin{minipage}[b]{0.45\linewidth}
@@ -680,9 +684,9 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	\end{verbatim}
 \end{enumerate}
 
-\subsection{リモート・マシンの移行}
+\subsection{リモートマシンの移行}
 
-新しいリモート・マシンへの移行は次の通り\\リモート・マシンへのOSの導入とネットワークの設定を終えていること
+新しいリモートマシンへの移行は次の通り\\リモートマシンへのOSの導入とネットワークの設定を終えていること
 
 \begin{enumerate}
 	\item configurationで、sshとi2cを有効にする
