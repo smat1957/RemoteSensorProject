@@ -86,7 +86,7 @@ if __name__=="__main__":
     if len(sys.argv) > 1:
         fname = dirstr + '/' + sys.argv[1]
     rtp = RTPlot(fname)
-    tomorrow = dt.now() + timedelta(days=1)
+    tomorrow = dt.strptime(rtp.tomorstr, '%Y-%m-%d, 00:00:00')
     while dt.now() < tomorrow:
         plt.pause(1)
         line = rtp.tail_f()
