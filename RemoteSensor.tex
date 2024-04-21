@@ -94,12 +94,12 @@
 \subsection{リモート処理の概要}
 
 \begin{itemize}
-	\item Raspberrin Pi Zero WH 上に用意したshell（sensor.sh）だが、このshellは別のRaspberryPiマシンからsshによって起動される
-	\item i2Cで接続された、臭気センサからの出力（電圧値）を、Pythonのプログラム（adrszOD.py）によって読み取ることができる
-	\item adrszOD.pyは、ch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを出力する様にしている
-	\item 測定の日付をdateコマンドで作成しているが、これは後ほどPythonのmatplotlibに合わせて、別途の整形処理が必要になることのない様に、書式を（年月日と時分秒の間は、半角カンマ＋半角スペース1個）の格好になるように整形している
-	\item 日付の出力と、臭気センサの値が１行になる様にするため、pasteコマンドを使っている
-	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各のコマンドを、<(any command) の形に囲むことによって、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン のp.156に、プロセス置換の解説がある}）
+	\item Raspberrin Pi Zero WH 上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
+	\item i2Cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取ることができる
+	\item adrszOD.pyはch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出している
+	\item dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要になることのない様、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になるように整形している
+	\item 日付とセンサの出力する値が１行になる様にするため、pasteコマンドを使っている
+	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各々のコマンドを、<(any command) の形に囲むことにより、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン のp.156に、プロセス置換の解説がある}）
 \end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
