@@ -223,8 +223,9 @@ sshでリモートのshellを実行した結果を受け取り、ローカルの
 ### sudo apt install -y sshpass ###
 dir='/home/mat/Documents'
 addr='192.168.3.27'
+usr='mat'
 pwd='mypassword'
-sshpass -p "${pwd}" ssh mat@"${addr}" "${dir}"/sensor.sh \
+sshpass -p "${pwd}" ssh "${usr}"@"${addr}" "${dir}"/sensor.sh \
 >> "${dir}"/w.txt
 	\end{verbatim}
 \end{itembox}
