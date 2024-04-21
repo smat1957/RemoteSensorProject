@@ -58,9 +58,9 @@ class RTPlot:
                     line = f.readline()
                     if not line:
                         time.sleep(1)
-                        if dt.now()-enter > timedelta(minutes=5):
-                            return
-                        continue
+                        if dt.now()-enter < timedelta(minutes=5):
+                            continue
+                        return
                     return line.strip()
         except FileNotFoundError:
             print(f'File{self.fname} not found')
