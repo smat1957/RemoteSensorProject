@@ -542,7 +542,7 @@ class RTPlot:
                     line = f.readline()
                     if not line:
                         time.sleep(1)
-                        if dt.now() - enter < timedelta(minutes=5):
+                        if dt.now() - enter < timedelta(minutes=6):
                             continue
                         return
                     return line.strip()
@@ -568,7 +568,7 @@ if __name__=="__main__":
 	\end{verbatim}
 \end{breakbox}
 
-tail\_f()関数の中では、5分を超えてcontinueを繰り返している場合にNoneを返す事にしているので、mainの中の繰り返し処理whileの中でその事を（PEP8が可読性の観点から推奨している書き方である） is not None によって判定している
+tail\_f()関数の中では、6分を超えてcontinueを繰り返している場合にNoneを返す事にしている（6分待てば、その間には必ず5分間隔のイベントは入ってくると思う）ので、mainの中の繰り返し処理whileの中でその事を（PEP8が可読性の観点から推奨している書き方である） is not None によって判定している
 
 実時間処理の画面は次の様になる
 

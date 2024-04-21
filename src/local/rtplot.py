@@ -58,7 +58,7 @@ class RTPlot:
                     line = f.readline()
                     if not line:
                         time.sleep(1)
-                        if dt.now()-enter < timedelta(minutes=5):
+                        if dt.now()-enter < timedelta(minutes=6):
                             continue
                         return
                     return line.strip()
