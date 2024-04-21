@@ -50,10 +50,10 @@ class RTPlot:
         self.ims.append(im)
 
     def tail_f(self):
-        enter = dt.now()
         try:
             with open(self.fname, 'r') as f:
                 f.seek(0, 2)
+                enter = dt.now()
                 while True:
                     line = f.readline()
                     if not line:
