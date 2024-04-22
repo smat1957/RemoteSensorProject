@@ -506,6 +506,7 @@ class RTPlot:
         self.ims = []
         self.dateproc()
         self.readdata(fname)
+        matplotlib.style.use('ggplot')
         self.fig, self.ax = plt.subplots()
         locator = mdates.AutoDateLocator()
         formatter = mdates.ConciseDateFormatter(locator)
@@ -520,7 +521,6 @@ class RTPlot:
                           " :Real time plot")
         self.ax.set_xlabel('Date-Time')
         self.ax.set_ylabel('Volt')
-        matplotlib.style.use('ggplot')
         im, = self.ax.plot(self.x, self.y)
         self.ims.append(im)
 
@@ -530,6 +530,7 @@ class RTPlot:
         value = float(line[25:].strip())
         self.x.append(datev)
         self.y.append(value)
+
 
     def update(self):
         if len(self.ims) > 0:
@@ -581,7 +582,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
 		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Figure_1.png}
-		\caption{実時間出力の例（途中経過：4月19日の20時頃）}
+		\caption{実時間出力の例（途中経過：4月22日の11時頃）}
 	\end{minipage}
 	%\hspace{1.0cm}
 	%\begin{minipage}[b]{0.45\linewidth}
@@ -591,7 +592,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	%\end{minipage}
 \end{figure}
 
-この画面を見ると概ね予定通りの出力になっているのだが、style.use('ggplot') の指定が無視されているのは気になる（なぜなのか、現段階で「私には」分かっていない）
+\newpage
 
 \section{新たなシステムへの移行手順}
 

@@ -31,6 +31,7 @@ class RTPlot:
         self.ims = []
         self.dateproc()
         self.readdata(fname)
+        matplotlib.style.use('ggplot')
         self.fig, self.ax = plt.subplots()
         locator = mdates.AutoDateLocator()
         formatter = mdates.ConciseDateFormatter(locator)
@@ -45,7 +46,6 @@ class RTPlot:
                           " :Real time plot")
         self.ax.set_xlabel('Date-Time')
         self.ax.set_ylabel('Volt')
-        matplotlib.style.use('ggplot')
         im, = self.ax.plot(self.x, self.y)
         self.ims.append(im)
 
