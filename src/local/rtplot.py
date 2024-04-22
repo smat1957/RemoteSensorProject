@@ -94,5 +94,5 @@ if __name__=="__main__":
             print("[info.log]", line)
             rtp.chop(line)
             rtp.update()
-    rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr+'.png')
+    rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr[:10]+'.png')
 
