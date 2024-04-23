@@ -532,13 +532,6 @@ class RTPlot:
         self.y.append(value)
 
 
-    def update(self):
-        if len(self.ims) > 0:
-            im = self.ims.pop()
-            im.remove()
-        im, = self.ax.plot(self.x, self.y)
-        self.ims.append(im)
-
     def tail_f(self):
         try:
             with open(self.fname, 'r') as f:
@@ -555,6 +548,30 @@ class RTPlot:
         except FileNotFoundError:
             print(f'File{self.fname} not found')
         return
+
+    def yrange(self):
+        self.ymax = np.array(self.y).max()
+        self.ymin = np.array(self.y).min()
+        step = 0.05
+        v = 0
+        while self.ymax > v:
+            v += step
+        self.ymax = v
+        while self.ymin < v:
+            v -= step
+        self.ymin = v
+        self.ymax += step/2.0
+        self.ymin -= step/2.0
+        self.ax.set_ylim([self.ymin, self.ymax])
+
+
+    def update(self):
+        self.yrange()
+        if len(self.ims) > 0:
+            im = self.ims.pop()
+            im.remove()
+        im, = self.ax.plot(self.x, self.y)
+        self.ims.append(im)
 
 if __name__=="__main__":
     dirstr = '/home/mat/Documents'
@@ -576,13 +593,15 @@ if __name__=="__main__":
 
 tail\_f()関数の中では、6分を超えてcontinueを繰り返している場合にNoneを返す事にしている（6分待てば、その間には必ず5分間隔のイベントは入ってくると思う）ので、mainの中の繰り返し処理whileの中でその事を（PEP8が可読性の観点から推奨している書き方） is not None によって判定している
 
-実時間処理の画面は次の様になる（このプログラム rtplot.py が終了時に保存する画像は、実は日毎処理のプログラム dayly.py が出力するものとほぼ同じものになる）
+実時間処理の画面は次の様になる
+
+このプログラム rtplot.py が終了時に保存する画像は、実は日毎処理のプログラム dayly.py が出力するものとほぼ同じ傾向を示しているはずだ。ただ rtplot.py の方は、新たな点をプロットするたびにy軸の最大値と最小値を更新しているため、日毎の処理では作図の範囲外に出るデータも示せている
 
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
-		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Figure_1.png}
-		\caption{実時間出力の例（途中経過：4月22日の11時頃）}
+		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Figure_2.png}
+		\caption{実時間出力の例（途中経過：4月23日の20時頃）}
 	\end{minipage}
 	%\hspace{1.0cm}
 	%\begin{minipage}[b]{0.45\linewidth}

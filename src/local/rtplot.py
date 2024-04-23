@@ -40,8 +40,12 @@ class RTPlot:
         xmin = mdates.datestr2num(self.todaystr)
         xmax = mdates.datestr2num(self.tomorstr) 
         self.ax.set_xlim([xmin, xmax])
-        ymin, ymax = 0.52, 1.25
-        self.ax.set_ylim([ymin, ymax])
+        #self.ymax = np.array([np.array(self.y).max(), 1.25]).max()
+        #self.ymin = np.array([np.array(self.y).min(), 0.52]).min()
+        self.ymax = np.array(self.y).max()
+        self.ymin = np.array(self.y).min()
+        #self.ymax, self.ymin = 1.25, 0.52
+        self.ax.set_ylim([self.ymin, self.ymax])
         self.ax.set_title("Smel Level : " + self.todaystr[:10] +\
                           " :Real time plot")
         self.ax.set_xlabel('Date-Time')
@@ -73,7 +77,23 @@ class RTPlot:
         self.x.append(datev)
         self.y.append(value)
 
+    def yrange(self):
+        self.ymax = np.array(self.y).max()
+        self.ymin = np.array(self.y).min()
+        step = 0.05
+        v = 0
+        while self.ymax>v:
+            v += step
+        self.ymax = v
+        while self.ymin<v:
+            v -= step
+        self.ymin = v
+        self.ymax += step/2.0
+        self.ymin -= step/2.0
+        self.ax.set_ylim([self.ymin, self.ymax])
+        
     def update(self):
+        self.yrange()
         if len(self.ims) > 0:
             im = self.ims.pop()
             im.remove()
