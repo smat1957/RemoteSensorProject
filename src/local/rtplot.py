@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.style
 import matplotlib.dates as mdates
@@ -40,18 +39,10 @@ class RTPlot:
         xmin = mdates.datestr2num(self.todaystr)
         xmax = mdates.datestr2num(self.tomorstr) 
         self.ax.set_xlim([xmin, xmax])
-        #self.ymax = np.array([np.array(self.y).max(), 1.25]).max()
-        #self.ymin = np.array([np.array(self.y).min(), 0.52]).min()
-        self.ymax = np.array(self.y).max()
-        self.ymin = np.array(self.y).min()
-        #self.ymax, self.ymin = 1.25, 0.52
-        self.ax.set_ylim([self.ymin, self.ymax])
-        self.ax.set_title("Smel Level : " + self.todaystr[:10] +\
-                          " :Real time plot")
+        self.yrange()
         self.ax.set_xlabel('Date-Time')
         self.ax.set_ylabel('Volt')
-        im, = self.ax.plot(self.x, self.y)
-        self.ims.append(im)
+        self.update()
 
     def tail_f(self):
         try:
@@ -77,27 +68,35 @@ class RTPlot:
         self.x.append(datev)
         self.y.append(value)
 
-    def yrange(self):
+    def statvalue(self):
         self.ymax = np.array(self.y).max()
         self.ymin = np.array(self.y).min()
-        step = 0.05
+        self.mean = np.array(self.y).mean()
+        str1 = f"Max={self.ymax:.2f}, "
+        str2 = f"Min={self.ymin:.2f}, "
+        str3 = f"Mean={self.mean:.2f}"
+        self.ax.set_title("Smel Level : " + str1 + str2 + str3)
+        
+    def yrange(self):
+        self.statvalue()
+        step = (self.ymax - self.ymin)/10.0
         v = 0
-        while self.ymax>v:
+        while self.ymax > v:
             v += step
-        self.ymax = v
-        while self.ymin<v:
+        ymax = v
+        while self.ymin < v:
             v -= step
-        self.ymin = v
-        self.ymax += step/2.0
-        self.ymin -= step/2.0
-        self.ax.set_ylim([self.ymin, self.ymax])
+        ymin = v
+        ymax += step/2.0
+        ymin -= step/2.0
+        self.ax.set_ylim([ymin, ymax])
         
     def update(self):
         self.yrange()
         if len(self.ims) > 0:
             im = self.ims.pop()
             im.remove()
-        im, = self.ax.plot(self.x, self.y)
+        im, = self.ax.plot(self.x, self.y, color="red")
         self.ims.append(im)
     
 if __name__=="__main__":

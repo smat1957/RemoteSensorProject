@@ -478,7 +478,7 @@ graph_plot(list0, dirstr, startstr, True)
 
 \begin{breakbox}%[l]{/home/mat/Documents/rtplot.py}
 	\begin{verbatim}
-import sys, time, numpy as np, pandas as pd
+import sys, time, numpy as np
 from matplotlib import style, pyplot as plt, dates as mdates
 from datetime import datetime as dt, timedelta
 
@@ -515,14 +515,10 @@ class RTPlot:
         xmin = mdates.datestr2num(self.todaystr)
         xmax = mdates.datestr2num(self.tomorstr) 
         self.ax.set_xlim([xmin, xmax])
-        ymin, ymax = 0.52, 1.25
-        self.ax.set_ylim([ymin, ymax])
-        self.ax.set_title("Smel Level : " + self.todaystr[:10] +\
-                          " :Real time plot")
+        self.yrange()
         self.ax.set_xlabel('Date-Time')
         self.ax.set_ylabel('Volt')
-        im, = self.ax.plot(self.x, self.y)
-        self.ims.append(im)
+        self.update()
 
     def chop(self, line):
         datestr = line[:20].strip()
@@ -531,6 +527,13 @@ class RTPlot:
         self.x.append(datev)
         self.y.append(value)
 
+    def statvalue(self):
+        self.ymax = np.array(self.y).max()
+        self.ymin = np.array(self.y).min()
+        self.mean = np.array(self.y).mean()
+        str1 = f"Max={self.ymax:.2f}, Min={self.ymin:.2f}, "
+        str2 = f"Mean={self.mean:.2f}"
+        self.ax.set_title("Smel Level : " + str1 + str2)
 
     def tail_f(self):
         try:
@@ -550,27 +553,25 @@ class RTPlot:
         return
 
     def yrange(self):
-        self.ymax = np.array(self.y).max()
-        self.ymin = np.array(self.y).min()
-        step = 0.05
+        self.statvalue()
+        step = (self.ymax - self.ymin)/10.0
         v = 0
         while self.ymax > v:
             v += step
-        self.ymax = v
+        ymax = v
         while self.ymin < v:
             v -= step
-        self.ymin = v
-        self.ymax += step/2.0
-        self.ymin -= step/2.0
-        self.ax.set_ylim([self.ymin, self.ymax])
-
+        ymin = v
+        ymax += step/2.0
+        ymin -= step/2.0
+        self.ax.set_ylim([ymin, ymax])
 
     def update(self):
         self.yrange()
         if len(self.ims) > 0:
             im = self.ims.pop()
             im.remove()
-        im, = self.ax.plot(self.x, self.y)
+        im, = self.ax.plot(self.x, self.y, color='red')
         self.ims.append(im)
 
 if __name__=="__main__":
@@ -595,13 +596,13 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 
 実時間処理の画面は次の様になる
 
-このプログラム rtplot.py が終了時に保存する画像は、実は日毎処理のプログラム dayly.py が出力するものとほぼ同じ傾向を示しているはずだ。ただ rtplot.py の方は、新たな点をプロットするたびにy軸の最大値と最小値を更新しているため、日毎の処理では作図の範囲外に出るデータも示せている
+このプログラム rtplot.py が終了時に保存する画像は、実は日毎処理のプログラム dayly.py が出力するものとほぼ同じ傾向を示しているはずだ。ただ rtplot.py の方は、新たな点をプロットするたびにy軸の最大値と最小値を更新しているため、日毎の処理では作図の範囲外に出るデータも示せているし、また具体的な最大値、最小値、平均値の値もその都度更新して表示している
 
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
-		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Figure_2.png}
-		\caption{実時間出力の例（途中経過：4月23日の20時頃）}
+		\includegraphics[keepaspectratio, scale=0.8]{figs/png/Figure_5.png}
+		\caption{実時間出力の例（途中経過：4月25日の19時過ぎ）}
 	\end{minipage}
 	%\hspace{1.0cm}
 	%\begin{minipage}[b]{0.45\linewidth}
