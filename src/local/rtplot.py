@@ -83,12 +83,10 @@ class RTPlot:
         v = 0
         while self.ymax > v:
             v += step
-        ymax = v
+        ymax = v + step/2.0
         while self.ymin < v:
             v -= step
-        ymin = v
-        ymax += step/2.0
-        ymin -= step/2.0
+        ymin = v - step/2.0
         self.ax.set_ylim([ymin, ymax])
         
     def update(self):
@@ -96,7 +94,8 @@ class RTPlot:
         if len(self.ims) > 0:
             im = self.ims.pop()
             im.remove()
-        im, = self.ax.plot(self.x, self.y, color="red")
+        #im, = self.ax.plot(self.x, self.y, marker='+', color='red')
+        im, = self.ax.plot(self.x, self.y, color='red')
         self.ims.append(im)
     
 if __name__=="__main__":
