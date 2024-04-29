@@ -71,7 +71,28 @@
 %\begin{abstract}
 %\end{abstract}
 
-%\chapter{リモート計測システム}
+\section{全体の構成}
+
+\begin{figure}[H]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.5]{figs/eps/zentai.eps}
+		\caption{システム全体の構成}
+	\end{minipage}
+%	\hspace{1.0cm}
+%	\begin{minipage}[b]{0.45\linewidth}
+%		\centering
+%		\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+%		\caption{ADRSZOD:TP401A}
+%	\end{minipage}
+\end{figure}
+
+\begin{itemize}
+	\item 5分毎にリモートマシン上の臭気センサの測定データをローカルマシンに読み取る
+	\item 読み取った5分毎のデータは、追記、蓄積していくと同時に、実時間の臭気変化としてグラフを描画更新する（ローカルマシン上）
+	\item 23時56分に、日毎の処理を起動し、1日分の蓄積データをグラフ化すると共に、蓄積した1日分のデータは別フォルダに退避する（ローカルマシン上）
+	\item 日曜日の0時1分に、週毎の処理を起動し、その日から過去1週間分の蓄積データを読んでグラフ化する（ローカルマシン上）
+\end{itemize}
 
 \section{リモートマシン}
 
@@ -91,15 +112,36 @@
 	\end{minipage}
 \end{figure}
 
+臭気センサTP-401A
+
+\begin{itemize}
+	\item 低電力で動作可能な高感度の臭気センサ
+	\item コンパクトなRaspberry Pi Zero と重ねて使用可能な　pHAT　サイズ
+	\item アンモニア、水素、アルコール、一酸化炭素、メタンなど揮発性気体、タバコ、木材燃焼発生した煙など様々な気体に対応
+	\item 連続通電を許容するので、様々な所での継続的なチェックが可能（動作時にはセンサ部が非常に高温となるため、取り扱いには注意）
+	\item 動作状況が見えるステータスLEDにより、駆動状況の確認が容易
+\end{itemize}
+
+運用方針
+
+\begin{itemize}
+	\item 基本的な運用形態は、モニタ、キーボード等を接続せず電源のみの接続で運用する
+	\item このマシン上では、数行の shell を登録するだけなので、基本的には他のPCのコンソールから ssh でloginして利用する（ここの例では、ユーザは mat）
+	\begin{verbatim}
+		ssh mat@192.168.3.27
+	\end{verbatim}
+	\item VNCを有効にして他のPCからアクセスすれば、デスクトップも利用できる
+\end{itemize}
+
 \subsection{リモート処理の概要}
 
 \begin{itemize}
 	\item Raspberrin Pi Zero WH 上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
-	\item i2Cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取ることができる
-	\item adrszOD.pyはch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出している
-	\item dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要になることのない様、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になるように整形している
-	\item 日付とセンサの出力する値が１行になる様にするため、pasteコマンドを使っている
-	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各々のコマンドを、<(any command) の形に囲むことにより、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン 初版第1刷のp.156に、プロセス置換の解説がある}）
+	\item i2cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取る
+	\item adrszOD.pyはch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出す
+	\item dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要にならない様に、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になる様に整形する
+	\item 日付とセンサの出力する値が１行になる様にするため、pasteコマンドを使う
+	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各々のコマンドは、<(any command) の形に囲むことにより、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン 初版第1刷p.156（プロセス置換の解説）}）
 \end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
@@ -111,6 +153,8 @@ paste <(date +%Y-%m-%d,\ %H:%M:%S) \
 	\end{verbatim}
 \end{itembox}
 
+この shell を起動してみると、次の通り
+
 \begin{itembox}[l]{sensor.sh の出力例}
 	\begin{verbatim}
 mat@raspberrypizero:~/Documents $ ./sensor.sh 
@@ -118,6 +162,9 @@ mat@raspberrypizero:~/Documents $ ./sensor.sh
 mat@raspberrypizero:~/Documents $ 
 	\end{verbatim}
 \end{itembox}
+
+以下は、センサーを読むためのPythonプログラムのソース（臭気センサ拡張基板のメーカが提供しているプログラム\footnote{\url{https://github.com/bit-trade-one/RasPi-Zero-One-Series}
+}を書き変えて使っている）
 
 \begin{itembox}[l]{/home/mat/Documents/adrszOD.py}
 	\begin{verbatim}
@@ -732,7 +779,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	\url{https://matplotlib.org/stable/api/dates_api.html}
 	\item プロセス置換\\
 	Daniel J.Barrett著、オライリー・ジャパン「Efficient Linuxコマンドライン」初版第1刷、p.157 のコラム記事
-	\item Pythonの仮想環境の構築\\
+	\item Pythonの仮想環境\\
 	寺田学 他著、翔泳社「Pythonによるあたらしいデータ分析の教科書」第2版、p.50
 \end{itemize}
 
