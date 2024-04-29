@@ -12,7 +12,7 @@ if [ "${hour}" -ge 23 ]; then
     mv "${dir}"/w.txt "${dir}"/data/"${dates}".txt
     touch "${dir}"/w.txt
     source "${dir}"/venv11/bin/activate
-      "${dir}"/venv11/bin/python3 "${dir}"/dayly.py "${dates}"
+      "${dir}"/venv11/bin/python3 "${dir}"/daily.py "${dates}"
     deactivate
   fi
 fi

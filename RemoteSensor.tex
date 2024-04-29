@@ -227,7 +227,7 @@ if __name__=="__main__":
 cronの仕組みを使うことにする（3つの時刻指定の処理を登録している）
 \begin{enumerate}
 	\item[(1)] 5分ごとに、リモートセンサの値を読み取る処理、rsensor.sh を起動する
-	\item[(2)] 毎日23時56分になったら、その日1日分の測定データを退避する処理、dayly.sh を起動する
+	\item[(2)] 毎日23時56分になったら、その日1日分の測定データを退避する処理、daily.sh を起動する
 	\item[(3)] 毎週日曜日の朝0時1分になったら、先週1週間の（先週の日曜日の0時0分から昨日の土曜日の23時55分まで5分間隔で測定した）測定データをまとめる処理、weekly.sh を起動する
 \end{enumerate}
 
@@ -235,7 +235,7 @@ cronの仕組みを使うことにする（3つの時刻指定の処理を登録
 	\begin{verbatim}
 		MAILTO=""
 		*/5 * * * * sh /home/mat/Documents/rsensor.sh
-		56 23 * * * sh /home/mat/Documents/dayly.sh
+		56 23 * * * sh /home/mat/Documents/daily.sh
 		1 0 * * Sun sh /home/mat/Documents/weekly.sh
 	\end{verbatim}
 \end{itembox}
@@ -293,18 +293,18 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 
 \subsection{日毎の処理}
 
-毎日の23時55分に、その日の最後の測定が終わる事を前提として、cronには23時56分になったら次のshell（dayly.sh）を起動する様にしている
+毎日の23時55分に、その日の最後の測定が終わる事を前提として、cronには23時56分になったら次のshell（daily.sh）を起動する様にしている
 
 現在時刻が23時55分を超えていることを確認した上で、次のことを行っている
 \begin{itemize}
 	\item 蓄積された1日分の測定データ w.txt を、bkup.txt という名前のファイルにコピーしている
 	\item w.txt を、dataフォルダ以下に、「今日の日付.txt」 という名前に変更して保存している
 	\item 空のファイル w.txt を次の日の測定データの蓄積場所のために用意している（ touch）
-	\item Pythonの仮想環境venv11に入って、dayly.py を起動している（第1引数にdataフォルダ以下に保存した測定データファイルの名前＝年月日を指定している）
+	\item Pythonの仮想環境venv11に入って、daily.py を起動している（第1引数にdataフォルダ以下に保存した測定データファイルの名前＝年月日を指定している）
 	\item プログラムの実行を終えたら、Pythonの仮想環境venv11から抜けている
 \end{itemize}
 
-\begin{itembox}[l]{/home/mat/Documents/dayly.sh}
+\begin{itembox}[l]{/home/mat/Documents/daily.sh}
 	\begin{verbatim}
 #!/usr/bin/bash
 dir='/home/mat/Documents'
@@ -317,7 +317,7 @@ if [ "${hour}" -ge 23 ]; then
     mv "${dir}"/w.txt "${dir}"/data/"${dates}".txt
     touch "${dir}"/w.txt
     source "${dir}"/venv11/bin/activate
-      "${dir}"/venv11/bin/python3 "${dir}"/dayly.py "${dates}"
+      "${dir}"/venv11/bin/python3 "${dir}"/daily.py "${dates}"
     deactivate
   fi
 fi
@@ -336,7 +336,7 @@ fi
 	\item 日付と電圧のリストを作って、それをgraph\_plot()関数に渡して作図させている
 \end{itemize}
 
-\begin{itembox}[l]{/home/mat/Documents/dayly.py}
+\begin{itembox}[l]{/home/mat/Documents/daily.py}
 	\begin{verbatim}
 import sys
 from datetime import datetime as dt
@@ -368,7 +368,7 @@ graph_plot(list0, dirstr, today, False)
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
 		\includegraphics[keepaspectratio, scale=0.8]{figs/png/2024-04-16.png}
-		\caption{dayly.pyの出力（4月16日の0時から24時まで）}
+		\caption{daily.pyの出力（4月16日の0時から24時まで）}
 	\end{minipage}
 	%\hspace{1.0cm}
 	%\begin{minipage}[b]{0.45\linewidth}
@@ -378,9 +378,9 @@ graph_plot(list0, dirstr, today, False)
 	%\end{minipage}
 \end{figure}
 
-\subsection{グラフ描画のための関数（myplot.py）}
+\subsection{グラフ描画のための関数}
 
-dayly.py と weekly.py で共通に呼び出しているgraph\_plot()関数を定義している
+daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を定義している
 
 横軸に日付と時刻（データは5分毎）を置くため、少し工夫が必要になる
 
@@ -402,8 +402,10 @@ dayly.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 		　　formatter = mdates.ConciseDateFormatter(locator)
 		　　ax.xaxis.set_major_locator(locator)
 		　　ax.xaxis.set_major_formatter(formatter)
-		　　ymax = np.array([y.max(), 1.45]).max()
-		　　ymin = np.array([y.min(), 0.25]).min()
+		　　ymin, ymax = y.min(), y.max()
+		　　step = (ymax - ymin) / 10.0
+		　　ymax = ((ymax // step) + 1) * step + step/2.0
+		　　ymin = (ymin // step) * step - step/2.0
 		　　ax.set_ylim([ymin, ymax])
 		　　ax.set_xlabel('Date-Time')
 		　　ax.set_ylabel('Volt')
@@ -496,7 +498,7 @@ graph_plot(list0, dirstr, startstr, True)
 
 以下は、週毎処理が出力する画像である。4月21日（日曜日）の0時1分にcronによって起動され実行されたものだが、フォルダdataの中には、測定を始めた4月16日（火曜日）から、4月20日（土曜日）までの5日分のファイルがあるだけである。本来なら1週間前の日曜日（4月14日）のデータから週毎処理の対象となるところだが、プログラムの中ではFileNotFoundErrorの例外を捕捉して、とにかくcontinueによって処理を継続させているため、何事もなかったかの様に、データファイルの所在する火曜日以降がグラフに作図されている
 
-また、日毎処理のプログラムdayly.pyと全く同じグラフ作図の関数（myplot.pyの中のgraph\_plot()関数）を使っているのだが、横軸の設定がmatplotlibのdates（mdatesとしてプログラム中では使っている）によって、自動的に調整されているのが分かる（便利）
+また、日毎処理のプログラムdaily.pyと全く同じグラフ作図の関数（myplot.pyの中のgraph\_plot()関数）を使っているのだが、横軸の設定がmatplotlibのdates（mdatesとしてプログラム中では使っている）によって、自動的に調整されているのが分かる（便利）
 
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
@@ -519,7 +521,7 @@ graph_plot(list0, dirstr, startstr, True)
 \begin{itemize}
 	\item RTPlotクラスに必要な関数類をまとめた
 	\item ポイントとなるのは、 plt.show() を使わず、plt.pause(1.0)を使うこと、tail -f をプログラム上で実現することの2点である
-	\item self.xとself.yのリストに順にデータを追記していき、新たなデータがw.txtに追加されたタイミングでplot.pause(1.0)としている（引数の値を0.1や0.01にするとRaspberry Piでは全て描画しきれないので注意）
+	\item self.xとself.yのリストに順にデータを追記していき、新たなデータがw.txtに追加されたタイミングでplt.pause(1.0)としている（引数の値を0.1や0.01にするとRaspberry Piでは全て描画しきれないので注意）
 	\item tail\_f()関数は、コマンド tail -f w.txt をPythonのプログラムで実現したもの（指定したファイルの最終行が追記されるまでcontinueで待っている）である
 \end{itemize}
 
@@ -642,7 +644,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 
 実時間処理の画面は次の様になる.
 
-このプログラム rtplot.py が終了時に保存する画像は、実は日毎処理のプログラム dayly.py が出力するものとほぼ同じ傾向を示しているはずだ。ただ rtplot.py の方は、新たな点をプロットするたびにy軸の最大値と最小値を更新しているため、日毎の処理では作図の範囲外に出るデータも示せているし、また具体的な最大値、最小値、平均値の値もその都度更新して表示している
+このプログラム rtplot.py が終了時に保存する画像は、実は日毎処理のプログラム daily.py が出力するものとほぼ同じ傾向を示しているはずだ。ただ rtplot.py の方は、新たな点をプロットするたびにy軸の最大値と最小値を更新しているため、日毎の処理では作図の範囲外に出るデータも示せているし、また具体的な最大値、最小値、平均値の値もその都度更新して表示している
 
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
@@ -725,7 +727,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	\begin{verbatim}
 		MAILTO=""
 		*/5 * * * * sh /home/mat/Documents/rsensor.sh
-		56 23 * * * sh /home/mat/Documents/dayly.sh
+		56 23 * * * sh /home/mat/Documents/daily.sh
 		1 0 * * Sun sh /home/mat/Documents/weekly.sh
 	\end{verbatim}
 	\item sshでリモートマシンに接続を試みて、key fingerprint を登録させる
