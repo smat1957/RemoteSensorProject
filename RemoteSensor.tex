@@ -149,7 +149,7 @@
 #!/usr/bin/bash
 dir='/home/mat/Documents'
 paste <(date +%Y-%m-%d,\ %H:%M:%S) \
-<(python3 "${dir}"/adrszOD.py | awk '{print $1}')
+<(python3 "${dir}"/procmain.py | awk '{print $1}')
 	\end{verbatim}
 \end{itembox}
 
@@ -168,22 +168,20 @@ mat@raspberrypizero:~/Documents $
 
 \begin{itembox}[l]{/home/mat/Documents/adrszOD.py}
 	\begin{verbatim}
-#!/usr/bin/env python
 import smbus
 import time
 
 class I2C:
-  bus_number = 1
-  bus = smbus.SMBus(bus_number)
+  i2c_bus = None
+  def __init__(self, bus_number=1):
+    cls = type(self)    # 旧スタイルなら、cls = self.__class__
+    cls.i2c_bus = smbus.SMBus(bus_number) 
 
 class TP401A(I2C):
-  Vref=2.048
-  
-  def __init__(self, address=0x68) -> None:
-    if address is not None:
-      self.address = address
-    else:
-      self.address = 0x68
+  def __init__(self, address=0x68, Vref=2.048) -> None:
+    super().__init__(bus_number=1)
+    self.address = address
+    self.Vref = Vref
 
   def swap16(self, x):
     return (((x << 8) & 0xFF00) | ((x >> 8) & 0x00FF))
@@ -192,28 +190,33 @@ class TP401A(I2C):
     return (-(x & 0b1000000000000000) | (x & 0b0111111111111111))
 
   def read_val(self, x):
-    I2C.bus.write_byte(self.address, x) #16bit
+    self.i2c_bus.write_byte(self.address, x) #16bit
     time.sleep(0.2)
-    data = I2C.bus.read_word_data(self.address,0x00)
+    data = self.i2c_bus.read_word_data(self.address,0x00)
     raw = self.swap16(int(hex(data),16))
     raw_s = self.sign16(int(hex(raw),16))
-    volts = round((TP401A.Vref * raw_s / 32767),5)
+    volts = round((self.Vref * raw_s / 32767),5)
     return volts
 	\end{verbatim}
 \end{itembox}
 
-\newpage
+%\newpage
 
 クラスTP401Aが、クラスI2Cを継承する様にしたのは、新たな別のI2C対応デバイスを、同じバス上に接続する場合を想定したもの
 
-このTP401Aクラスは、次の様にして使っている
+TP401AクラスはI2Cクラスを継承しているので、TP401Aのコンストラクタの中でI2Cクラスのコンストラクタを明示的に実行し、I2Cバスの番号を指定している
 
-\begin{screen}
+TP401Aクラスの上位クラスI2Cクラスのクラス変数i2c\_busへのアクセスは、「self.変数名」の格好でアクセスすることによって、インスタンス変数→クラス変数→親クラスのクラス変数の順に探索され、I2Cクラスのクラス変数にたどり着けることになる
+
+このTP401Aクラスを使う次の主処理は、sensor.sh の中から呼び出されている
+
+\begin{itembox}[l]{/home/mat/Documents/procmain.py}
 	\begin{verbatim}
+#!/usr/bin/env python
 from sarzOD import TP401A
 
-if __name__ == "__main__":
-  smel = TP401A( 0x68 )
+if __name__  ==  "__main__":
+  smel = TP401A()
   volts1 = smel.read_val( 0b10011000 ) 
   volts2 = smel.read_val( 0b10111000 ) 
   volts3 = smel.read_val( 0b11011000 ) 
@@ -221,7 +224,7 @@ if __name__ == "__main__":
   out_msg = f"ch1:{volts1} ,ch2:{volts2},ch3:{volts3},ch4:{volts4}" 
   print(out_msg)
 	\end{verbatim}
-\end{screen}
+\end{itembox}
 
 \section{ローカルマシン}
 
@@ -803,7 +806,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 		sudo apt update
 		sudo apt dist-upgrade
 	\end{verbatim}
-	\item adrszOD.py を導入する
+	\item adrszOD.py と procmain.py を導入する
 	\item sensor.sh を導入して、実行可能属性をつける（chmod +x sensor.sh）
 	\item /home/mat/Documents/sensor.sh を実行して、現在日時とセンサの電圧、それぞれ適切な値が１行で出力される事を確認する
 \end{enumerate}
