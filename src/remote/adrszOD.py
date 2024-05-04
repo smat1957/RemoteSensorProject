@@ -2,30 +2,41 @@
 import smbus
 import time
 
-i2c = smbus.SMBus(1)
-addr=0x68
-Vref=2.048
+class I2C:
+    bus_number = 1
+    bus = smbus.SMBus(bus_number)
 
-def swap16(x):
-  return (((x << 8) & 0xFF00) | ((x >> 8) & 0x00FF))
+class TP401A(I2C):
+    Vref=2.048
 
-def sign16(x):
-  return ( -(x & 0b1000000000000000) | (x & 0b0111111111111111) )
+    def __init__(self, address=0x68) -> None:
+        if address is not None:
+            self.address = address
+        else:
+            self.address = 0x68
 
-def readval(x):
-  i2c.write_byte(addr, x) #16bit
-  time.sleep(0.2)
-  data = i2c.read_word_data(addr,0x00)
-  raw = swap16(int(hex(data),16))
-  raw_s = sign16(int(hex(raw),16))
-  volts = round((Vref * raw_s / 32767),5)
-  return volts
+    def swap16(self, x):
+        return (((x << 8) & 0xFF00) |
+            ((x >> 8) & 0x00FF))
 
-if __name__=="__main__":
-  volts1 = readval( 0b10011000 )
-  volts2 = readval( 0b10111000 )
-  volts3 = readval( 0b11011000 )
-  volts4 = readval( 0b11111000 )
-  out_msg = 'ch1:' + str(volts1) + ' ,ch2:' + str(volts2)+\
-    ' ,ch3:' + str(volts3)+ ' ,ch4:' + str(volts4)
-  print(out_msg)
+    def sign16(self, x):
+        return ( -(x & 0b1000000000000000) |
+            (x & 0b0111111111111111) )
+
+    def read_val(self, x):
+        I2C.bus.write_byte(self.address, x) #16bit
+        time.sleep(0.2)
+        data = I2C.bus.read_word_data(self.address,0x00)
+        raw = self.swap16(int(hex(data),16))
+        raw_s = self.sign16(int(hex(raw),16))
+        volts = round((TP401A.Vref * raw_s / 32767),5)
+        return volts
+
+if __name__ == "__main__":
+    smel = TP401A(0x68)
+    volts1 = smel.read_val( 0b10011000 ) 
+    volts2 = smel.read_val( 0b10111000 ) 
+    volts3 = smel.read_val( 0b11011000 ) 
+    volts4 = smel.read_val( 0b11111000 )
+    out_msg = f"ch1:{volts1} , ch2:{volts2} , ch3:{volts3} , ch4:{volts4}" 
+    print(out_msg)
