@@ -15,7 +15,7 @@
 \usepackage{framed}
 \usepackage {boites}
 \usepackage{eclbkbox}
-\usepackage{url}
+\usepackage[hyphens]{url}
 
 \lstset{
 	%プログラム言語(複数の言語に対応，C,C++も可)
@@ -135,14 +135,19 @@
 
 \subsection{リモート処理の概要}
 
-\begin{itemize}
-	\item Raspberrin Pi Zero WH 上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
-	\item i2cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取る
-	\item adrszOD.pyはch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出す
-	\item dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要にならない様に、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になる様に整形する
-	\item 日付とセンサの出力する値が１行になる様にするため、pasteコマンドを使う
-	\item paste の2つのオペランド、<(date +....)　と、<(python3 adrszOD.py...)の各々のコマンドは、<(any command) の形に囲むことにより、2つのファイルの様に扱うことができる（プロセス置換\footnote{「Efficient Linuxコマンドライン」オライリー・ジャパン 初版第1刷p.156（プロセス置換の解説）}）
-\end{itemize}
+%\begin{itemize}
+	Raspberrin Pi Zero WH 上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
+	
+	i2cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取られる
+	
+	adrszOD.pyはch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出している
+	
+	dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要にならない様に、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になる様に整形している
+	
+	日付とセンサの出力する値が１行になる様にするため、pasteコマンド（テキストファイルを横に並べて結合するコマンド）を使っている\footnotemark[1]
+	
+	paste の2つのオペランド、<(date +....)と、<(python3 ..procmain.py..)の各々のコマンドは、<(any command) の形に囲むことにより、読み取りのためのファイル記述子を指定したことになり、それぞれを2つのファイルの様に扱うことができる\footnote[1]{「Efficient Linuxコマンドライン」オライリー・ジャパン 初版第1刷p.108、p.156（プロセス置換）}
+%\end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
 	\begin{verbatim}
@@ -164,7 +169,7 @@ mat@raspberrypizero:~/Documents $
 \end{itembox}
 
 以下は、センサーを読むためのPythonプログラムのソース（臭気センサ拡張基板のメーカが提供しているプログラム\footnote{\url{https://github.com/bit-trade-one/RasPi-Zero-One-Series}
-}を書き変えて使っている）
+}を書き変えて使っている）である
 
 \begin{itembox}[l]{/home/mat/Documents/adrszOD.py}
 	\begin{verbatim}
@@ -208,7 +213,7 @@ TP401AクラスはI2Cクラスを継承しているので、TP401Aのコンス�
 
 TP401Aクラスの上位クラスI2Cクラスのクラス変数i2c\_busへのアクセスは、「self.変数名」の格好でアクセスすることによって、インスタンス変数→クラス変数→親クラスのクラス変数の順に探索され、I2Cクラスのクラス変数にたどり着けることになる
 
-このTP401Aクラスを使う次の主処理は、sensor.sh の中から呼び出されている
+このTP401Aクラスを使う主処理は、sensor.sh の中から呼び出されている
 
 \begin{itembox}[l]{/home/mat/Documents/procmain.py}
 	\begin{verbatim}
@@ -234,7 +239,7 @@ if __name__  ==  "__main__":
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
 		\includegraphics[keepaspectratio, scale=0.12]{figs/jpg/udrp4b_front.jpg}
-		\caption{Raspberry Pi}
+		\caption{Raspberry Pi 3, 4 or 5}
 		%	\end{minipage}
 	%	\hspace{1.0cm}
 	%	\begin{minipage}[b]{0.45\linewidth}
@@ -250,7 +255,7 @@ if __name__  ==  "__main__":
 
 \subsection{cronによる時刻指定の処理}
 
-cronの仕組みを使うことにする（3つの時刻指定の処理を登録している）
+cronの仕組みを使う（3つの時刻指定の処理を登録している）
 \begin{enumerate}
 	\item[(1)] 5分ごとに、リモートセンサの値を読み取る処理、rsensor.sh を起動する
 	\item[(2)] 毎日23時56分になったら、その日1日分の測定データを退避する処理、daily.sh を起動する
@@ -321,7 +326,7 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 
 毎日の23時55分に、その日の最後の測定が終わる事を前提として、cronには23時56分になったら次のshell（daily.sh）を起動する様にしている
 
-現在時刻が23時55分を超えていることを確認した上で、次のことを行っている
+このshellでは、現在時刻が23時55分を超えていることを確認した上で、次のことを行っている
 \begin{itemize}
 	\item 蓄積された1日分の測定データ w.txt を、bkup.txt という名前のファイルにコピーしている
 	\item w.txt を、dataフォルダ以下に、「今日の日付.txt」 という名前に変更して保存している
@@ -354,13 +359,17 @@ fi
 
 \subsection{日毎処理のプログラム}
 
-\begin{itemize}
-	\item myplot.py から、graph\_plot() 関数をimport している（この関数の詳細は後述）
-	\item 第1引数に指定があったら、そこで指定された日付のデータを元に、グラフを描画できる様にしている
-	\item 指定のデータファイルを開いて、最初の20文字までは、予めmatplotlibのdatesに対応した様式の日付文字列にしているので、それをUnixの日付けに変換している
-	\item 25文字目以降は、測定した電圧の値だが、改行文字が付いていたりするので、.strip()によってホワイトスペースを除去して、実数に変換している
-	\item 日付と電圧のリストを作って、それをgraph\_plot()関数に渡して作図させている
-\end{itemize}
+%\begin{itemize}
+	myplot.py から、graph\_plot() 関数をimport している（この関数の詳細は後述）
+	
+	第1引数に指定があったら、そこで指定された日付のデータを元に、グラフを描画できる様にしている
+	
+	指定のデータファイルを開いて、最初の20文字までは、予めmatplotlibのdatesに対応した様式の日付文字列にしているので、それをUnixの日付けに変換している
+	
+	25文字目以降は、測定した電圧の値だが、改行文字が付いていたりするので、.strip()によってホワイトスペースを除去して、実数に変換している
+	
+	日付と電圧のリストを作って、それをgraph\_plot()関数に渡して作図させている
+%\end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/daily.py}
 	\begin{verbatim}
@@ -406,12 +415,12 @@ graph_plot(list0, dirstr, today, False)
 
 \subsection{グラフ描画のための関数}
 
-daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を定義している
+daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を、以下の様に定義している
 
 横軸に日付と時刻（データは5分毎）を置くため、少し工夫が必要になる
 
-ポイントは、matplotlibが理解する日付の様式で書いたものを使うと、matplotlibのdatesに、locatorとformatterを自動生成させて、それ以下の全てを任せきることができる\footnote{\url{https://matplotlib.org/stable/api/dates_api.html}
-	の記事が参考になる}
+ポイントは、matplotlibが理解する日付の様式で書いたものを使うことさえできれば、matplotlibのdatesに、locatorとformatterを自動生成させ、それ以下の全ての面倒な処理を任せきることができる\footnote{\url{https://matplotlib.org/stable/api/dates_api.html}
+	の記事が参考になる}点にある
 
 \begin{itembox}[l]{/home/mat/Documents/myplot.py}
 	\begin{verbatim}
@@ -477,14 +486,19 @@ fi
 
 \subsection{週毎処理のプログラム}
 
-\begin{itemize}
-	\item myplot.pyからgraph\_plot()関数をimportしている
-	\item 第1引数で処理対象にする最終日付を受け取ることができる様にしている
-	\item 指定された処理対象の最終日付から、7日前の日付を求めて、7日間の日付のリストdatelistを作っている
-	\item 7日間の日付リストdatelistから1日ずつ取り出しては、そのファイル名のデータをdataフォルダから読み出し、日付の変換と電圧の実数への変換を行い、それらのデータのリストをlist0に追記していっている
-	\item もし、指定した日付のデータファイルがなかった場合は、例外処理で受けて黙って次の日付のファイルのデータ取得に移る様にしている
-	\item graph\_plot()関数にlist0を渡してグラフの作図をさせている
-\end{itemize}
+%\begin{itemize}
+	myplot.pyからgraph\_plot()関数をimportしている
+	
+	第1引数で処理対象にする最終日付を受け取ることができる様にしている
+	
+	指定された処理対象の最終日付から、7日前の日付を求めて、7日間の日付のリストdatelistを作っている
+	
+	7日間の日付リストdatelistから1日ずつ取り出しては、そのファイル名のデータをdataフォルダから読み出し、日付の変換と電圧の実数への変換を行い、それらのデータのリストをlist0に追記していっている
+	
+	もし、指定した日付のデータファイルがなかった場合は、例外処理で受けて黙って次の日付のファイルのデータ取得に移る様にしている
+	
+	graph\_plot()関数にlist0を渡してグラフの作図をさせている
+%\end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/weekly.py}
 	\begin{verbatim}
@@ -544,12 +558,15 @@ graph_plot(list0, dirstr, startstr, True)
 
 \subsection{測定データのグラフを実時間で描画する}
 
-\begin{itemize}
-	\item RTPlotクラスに必要な関数類をまとめた
-	\item ポイントとなるのは、 plt.show() を使わず、plt.pause(1.0)を使うこと、tail -f をプログラム上で実現することの2点である
-	\item self.xとself.yのリストに順にデータを追記していき、新たなデータがw.txtに追加されたタイミングでplt.pause(1.0)としている（引数の値を0.1や0.01にするとRaspberry Piでは全て描画しきれないので注意）
-	\item tail\_f()関数は、コマンド tail -f w.txt をPythonのプログラムで実現したもの（指定したファイルの最終行が追記されるまでcontinueで待っている）である
-\end{itemize}
+%\begin{itemize}
+	RTPlotクラスに必要な関数類をまとめたものである
+	
+	ポイントとなるのは、 plt.show() を使わず、plt.pause(1.0)を使うこと、tail -f をプログラム上で実現することの2点である
+	
+	self.xとself.yのリストに順にデータを追記していき、新たなデータがw.txtに追加されたタイミングでplt.pause(1.0)としている（引数の値を0.1や0.01にするとRaspberry Piでは全て描画しきれないので注意）
+	
+	tail\_f()関数は、コマンド tail -f w.txt をPythonのプログラムで実現したもの（指定したファイルの最終行が追記されるまでcontinueで待っている）である
+%\end{itemize}
 
 \begin{breakbox}%[l]{/home/mat/Documents/rtplot.py}
 	\begin{verbatim}
@@ -573,6 +590,7 @@ class RTPlot:
                     self.chop(line)
         except FileNotFoundError:
             print(f'File{fname} not found')
+
 
     def __init__(self, fname):
         self.fname = fname
@@ -816,12 +834,14 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 \section{参考文献}
 
 \begin{itemize}
-	\item 臭気センサ拡張基板とそのサンプルプログラム\\
-	\url{https://github.com/bit-trade-one/RasPi-Zero-One-Series}
+	\item ビット・トレード・ワン社zerooneシリーズ拡張基板のサンプルプログラム\\
+	（\url{https://github.com/bit-trade-one/RasPi-Zero-One-Series}）
+	\item BME280センサーモジュール\\
+	（\url{https://algorithm.joho.info/programming/python/raspberrypi3-bme280-kion-sitsudo-kiatsu/}）
 	\item matplotlib が認識する日付の書式\\
 	\url{https://matplotlib.org/stable/api/dates_api.html}
-	\item プロセス置換\\
-	Daniel J.Barrett著、オライリー・ジャパン「Efficient Linuxコマンドライン」初版第1刷、p.157 のコラム記事
+	\item テキストの結合、プロセス置換\\
+	Daniel J.Barrett著、オライリー・ジャパン「Efficient Linuxコマンドライン」初版第1刷、p.106（テキストの結合）, p.154, p.157 のコラム記事
 	\item Pythonの仮想環境\\
 	寺田学 他著、翔泳社「Pythonによるあたらしいデータ分析の教科書」第2版、p.50
 \end{itemize}
