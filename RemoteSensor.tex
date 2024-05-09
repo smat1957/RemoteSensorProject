@@ -66,10 +66,14 @@
 \begin{document}
 \maketitle
 
+\newpage
+
 \tableofcontents
 
 %\begin{abstract}
 %\end{abstract}
+
+\newpage
 
 \section{全体の構成}
 
@@ -302,8 +306,8 @@ sshでリモートのshellを実行した結果を受け取り、ローカルの
 dir='/home/mat/Documents'
 addr='192.168.3.27'
 usr='mat'
-pwd='mypassword'
-sshpass -p "${pwd}" ssh "${usr}"@"${addr}" "${dir}"/sensor.sh \
+pass='mypassword'
+sshpass -p "${pass}" ssh "${usr}"@"${addr}" "${dir}"/sensor.sh \
 >> "${dir}"/w.txt
 	\end{verbatim}
 \end{itembox}
@@ -339,9 +343,9 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 	\begin{verbatim}
 #!/usr/bin/bash
 dir='/home/mat/Documents'
-dates=`date +%Y-%m-%d`
-hour=`date +%H`
-minu=`date +%M`
+dates="date +%Y-%m-%d"
+hour="date +%H"
+minu="date +%M"
 if [ "${hour}" -ge 23 ]; then
   if [ "${minu}" -gt 55 ]; then
     cp "${dir}"/w.txt "${dir}"/bkup.txt
@@ -471,9 +475,9 @@ Pythonのプログラムは、第1引数に日付を受け取ることができ�
 	\begin{verbatim}
 #!/usr/bin/bash
 dir='/home/mat/Documents'
-dates=`date +%Y-%m-%d`
-hour=`date +%H`
-minu=`date +%M`
+dates="date +%Y-%m-%d"
+hour="date +%H"
+minu="date +%M"
 if [ "${hour}" -ge 0 ]; then
   if [ "${minu}" -gt 0 ]; then
     source "${dir}"/venv11/bin/activate
@@ -712,12 +716,145 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 		dir='/home/mat/Documents'
 		cd "${dir}" 
 		source "${dir}"/venv11/bin/activate
-		python3 "${dir}"/rtplot.py
+		  python3 "${dir}"/rtplot.py
 		deactivate
 	\end{verbatim}
 \end{itembox}
 
+\newpage
 
+\section{リモートマシン単独での運用}
+
+リモートとローカルの両方を動かし続けるのが難しい場合に、
+普段はリモートだけでデータを集めておいて、
+時々ローカルにリモートのデータを取り込み、
+それをグラフ化するなどの処理を行う方法をとる運用も考えられる
+
+\subsection{リモートマシンでの処理}
+
+リモートのコンピュータ内でデータを集める仕組みは、
+ほぼローカルコンピュータでの処理と同様にして実施する
+
+\begin{itembox}[l]{/home/mat/Desktop/proc.sh}
+	\begin{verbatim}
+#!/usr/bin/sh
+dir='/home/mat/Documents'
+"${dir}"/sensor.sh >> "${dir}"/w.txt
+	\end{verbatim}
+\end{itembox}
+
+リモートにも、（ローカルと同様のディレクトリ構成で）/home/mat/Documents/data を用意しておく
+
+\begin{itembox}[l]{/home/mat/Desktop/procdaily.sh}
+	\begin{verbatim}
+#!/usr/bin/sh
+dir='/home/mat/Documents'
+dates="date +%Y-%m-%d"
+hour="date +%H"
+minu="date +%M"
+if [ "${dour}" -ge 23 ]; then
+  if [ "${minu}" -gt 55 ]; then
+    cp "${dir}"/w.txt "${dir}"/bkup.txt
+    mv "${dir}"/w.txt "${dir}"/data/"${dates}".txt
+    touch "${dir}"/w.txt
+    chmod 666 "${dir}"/w.txt
+  fi
+fi
+	\end{verbatim}
+\end{itembox}
+
+\newpage
+
+crontab では、5分ごとの処理を（ローカルマシンの処理時刻とずらすため）、3,8,13,18,... の5分おきに実行される様にした
+
+\begin{itembox}[l]{crontab -e}
+\begin{verbatim}
+MAILTO=""
+# m h  dom mon dow   command
+3-58/5 * * * * sh /home/mat/Documents/proc.sh
+56 23 * * * sh /home/mat/Documents/procdaily.sh
+\end{verbatim}	
+\end{itembox}
+
+\newpage
+
+\subsection{ローカルマシンでの処理}
+
+Pythonのプログラムで、ローカルマシン内に欠けている日付のデータファイルを調べる
+
+\begin{itembox}[l]{/home/mat/Documents/lackdata.py}
+	\begin{verbatim}
+from datetime import datetime as dt, timedelta
+import glob
+
+s_format = '%Y-%m-%d'
+todaystr = (dt.now() + timedelta(days=0)).strftime(s_format)
+today = dt.strptime(todaystr, s_format)
+
+dirstr = '/home/mat/Documents'
+wlist = glob.glob(dirstr + '/data/*.txt')
+dlist = []
+for w in wlist:
+  dlist.append(dt.strptime(w[len(dirstr)+6:-4], s_format))
+dlist.sort(reverse=True)	# descending order
+
+ten_days = 10
+lacklist = []
+for d in range(ten_days):
+  day = today - timedelta(days=d)
+  if day in dlist:
+    break
+  else:
+    lacklist.append(day)
+
+for fname in lacklist:
+  #if fname != today:
+  with open('lackfiles.txt', 'w') as f:
+    f.write(fname.strftime(s_format)+'.txt')
+	\end{verbatim}
+\end{itembox}
+
+Pythonのプログラムを実行した段階で、
+ローカルに無い日付のファイル名が分かったので、
+それをリモートからとってきてローカルに保存するshell を実行する
+
+\begin{itembox}[l]{/home/mat/Documents/lack.sh}
+	\begin{verbatim}
+#!/bin/bash
+TODAY=`date +%Y-%m-%d`
+searchstring="${TODAY}.txt"
+PASS='password'
+USR='mat'
+ADDR='192.168.3.27'
+DIR='/home/mat/Documents'
+FILE_NAME="${DIR}"/lackfiles.txt
+while read LINE
+do
+  match=$(echo "${LINE}" | awk "/^$searchstring/")
+  if [ -n "$match" ]; then
+    cp "${DIR}"/w.txt "${DIR}"/ww.txt
+    sshpass -p "${PASS}" ssh "${USR}"@"${ADDR}" \
+      cat "${DIR}"/w.txt >> "${DIR}"/ww.txt
+    sort -u "${DIR}"/ww.txt > ${DIR}/www.txt
+    rm ${DIR}/ww.txt ${DIR}/w.txt
+    mv ${DIR}/www.txt ${DIR}/w.txt
+  else
+    RC=$(sshpass -p ${PWRD} ssh ${USR}@${ADDR} \
+      'test -f ${DIR}/data/${LINE};echo $?')
+    if [ ${RC} -eq 0 ]; then
+      sshpass -p "${PWRD}" ssh "${USR}"@"${ADDR}" \
+        cat "${DIR}"/data/"${LINE}" > "${DIR}"/data/"${LINE}"
+    fi 
+  fi 
+done < ${FILE_NAME}
+	\end{verbatim}
+\end{itembox}
+
+\newpage
+
+ただしプログラムを実行した当日のデータについては、ローカルマシンとリモートマシンの両方にある可能性があるので、両方をマージしてローカルマシン上のデータとした
+
+リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする
 
 \newpage
 
@@ -824,7 +961,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 		sudo apt update
 		sudo apt dist-upgrade
 	\end{verbatim}
-	\item adrszOD.py と procmain.py を導入する
+	\item adrszOD.py と procmain.py、及び proc.sh、procdaily.sh を導入する
 	\item sensor.sh を導入して、実行可能属性をつける（chmod +x sensor.sh）
 	\item /home/mat/Documents/sensor.sh を実行して、現在日時とセンサの電圧、それぞれ適切な値が１行で出力される事を確認する
 \end{enumerate}
