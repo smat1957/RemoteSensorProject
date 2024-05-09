@@ -739,7 +739,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
-"${dir}"/sensor.sh >> "${dir}"/w.txt
+${dir}/sensor.sh >> ${dir}/w.txt
 	\end{verbatim}
 \end{itembox}
 
@@ -752,12 +752,11 @@ dir='/home/mat/Documents'
 dates="date +%Y-%m-%d"
 hour="date +%H"
 minu="date +%M"
-if [ "${dour}" -ge 23 ]; then
-  if [ "${minu}" -gt 55 ]; then
-    cp "${dir}"/w.txt "${dir}"/bkup.txt
-    mv "${dir}"/w.txt "${dir}"/data/"${dates}".txt
-    touch "${dir}"/w.txt
-    chmod 666 "${dir}"/w.txt
+if [ ${dour} -ge 23 ]; then
+  if [ ${minu} -gt 55 ]; then
+    cp ${dir}/w.txt ${dir}/bkup.txt
+    mv ${dir}/w.txt ${dir}/data/${dates}.txt
+    touch ${dir}/w.txt
   fi
 fi
 	\end{verbatim}
@@ -827,23 +826,23 @@ PASS='password'
 USR='mat'
 ADDR='192.168.3.27'
 DIR='/home/mat/Documents'
-FILE_NAME="${DIR}"/lackfiles.txt
+FILE_NAME=${DIR}/lackfiles.txt
 while read LINE
 do
-  match=$(echo "${LINE}" | awk "/^$searchstring/")
-  if [ -n "$match" ]; then
-    cp "${DIR}"/w.txt "${DIR}"/ww.txt
-    sshpass -p "${PASS}" ssh "${USR}"@"${ADDR}" \
-      cat "${DIR}"/w.txt >> "${DIR}"/ww.txt
-    sort -u "${DIR}"/ww.txt > ${DIR}/www.txt
+  match=$(echo ${LINE} | awk "/^$searchstring/")
+  if [ -n ${match} ]; then
+    cp ${DIR}/w.txt ${DIR}/ww.txt
+    sshpass -p ${PASS} ssh ${USR}@${ADDR} \
+      cat ${DIR}/w.txt >> ${DIR}/ww.txt
+    sort -u ${DIR}/ww.txt > ${DIR}/www.txt
     rm ${DIR}/ww.txt ${DIR}/w.txt
     mv ${DIR}/www.txt ${DIR}/w.txt
   else
-    RC=$(sshpass -p ${PWRD} ssh ${USR}@${ADDR} \
+    RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} \
       'test -f ${DIR}/data/${LINE};echo $?')
     if [ ${RC} -eq 0 ]; then
-      sshpass -p "${PWRD}" ssh "${USR}"@"${ADDR}" \
-        cat "${DIR}"/data/"${LINE}" > "${DIR}"/data/"${LINE}"
+      sshpass -p ${PASS} scp ${USR}@${ADDR}:${DIR}/data/${LINE} \
+       ${DIR}/data/${LINE}
     fi 
   fi 
 done < ${FILE_NAME}
