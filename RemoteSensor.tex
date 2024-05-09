@@ -834,9 +834,7 @@ do
     cp ${DIR}/w.txt ${DIR}/ww.txt
     sshpass -p ${PASS} ssh ${USR}@${ADDR} \
       cat ${DIR}/w.txt >> ${DIR}/ww.txt
-    sort -u ${DIR}/ww.txt > ${DIR}/www.txt
-    rm ${DIR}/ww.txt ${DIR}/w.txt
-    mv ${DIR}/www.txt ${DIR}/w.txt
+    sort -u ${DIR}/ww.txt > ${DIR}/w.txt
   else
     RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} \
       'test -f ${DIR}/data/${LINE};echo $?')
