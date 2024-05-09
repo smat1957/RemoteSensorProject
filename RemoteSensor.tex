@@ -802,7 +802,7 @@ lacklist = []
 for d in range(ten_days):
   day = today - timedelta(days=d)
   if day in dlist:
-    break
+    continue
   else:
     lacklist.append(day)
 

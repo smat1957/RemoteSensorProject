@@ -17,11 +17,11 @@ lacklist = []
 for d in range(ten_days):
     day = today - timedelta(days=d)
     if day in dlist:
-        break
+       	continue 
     else:
         lacklist.append(day)
 
 for fname in lacklist:
     #if fname != today:
     with open('lackfiles.txt', 'w') as f:
-        f.write(fname.strftime(s_format)+'.txt')
+        f.write(fname.strftime(s_format)+'.txt'+'\n')
