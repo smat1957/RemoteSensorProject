@@ -820,9 +820,9 @@ Pythonのプログラムを実行した段階で、
 \begin{itembox}[l]{/home/mat/Documents/lack.sh}
 	\begin{verbatim}
 #!/bin/bash
-TODAY=`date +%Y-%m-%d`
-searchstring="${TODAY}.txt"
-PWRD='passiword'
+TODAY="date +%Y-%m-%d"
+searchstring=${TODAY}.txt
+PWRD='password'
 USR='mat'
 ADDR='192.168.3.27'
 DIR='/home/mat/Documents'
@@ -856,14 +856,23 @@ done < ${FILE_NAME}
 【shell 記述上の注意】
 
 \begin{itemize}
-	\item \$\{LINE\}と\$\{match\}は、ダブルクゥオーテーションで囲む必要がある	
+	\item \$\{LINE\}と\$\{match\}は、ダブルクオートで囲む必要がある	
 	\begin{verbatim}
 		match=$(echo "${LINE}" | awk "/^$searchstring/")
 		if [ -n "${match}" ]; then
 	\end{verbatim}
-	\item shellの変数名をダブルクオートで囲む必要がある場合とはどんな場合に必要なのか？不明（ダブルクオートで囲まないと評価してくれないことがある）
+	\item shellの変数名をダブルクオートで囲まないと期待した評価がなされないことがある（単なる文字列になっていて、それを評価した結果の文字列が必要ならばダブルクオートで囲む必要があるということ）\\例えば、次のケースでは\$\{TODAY\}は"date +\%Y-\%m-\%d"とダブルクオートで囲んでいるため、評価済みの文字列が\$\{TODAY\}に入っており、searchstring=\$\{TODAY\}.txtの形でOk
+	\begin{verbatim}
+TODAY="date +%Y-%m-%d"
+searchstring=${TODAY}.txt
+	\end{verbatim}
+一方、次の様にシングルクオートで囲んでいる場合、\$\{TODAY\}は単に指定した文字列そのものなので、その文字列は評価される必要があって、searchstring="\$\{TODAY\}".txtの様にダブルクオートで囲んで評価させることになる
+\begin{verbatim}
+	TODAY='date +%Y-%m-%d'
+	searchstring="${TODAY}".txt
+\end{verbatim}
 	\item if文の -n は、"\$\{match\}"が空でないならばという意味（空ならばは、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくる
-	\item 予めCMD変数に、\$\{LINE\}と\$\{DIR\}の評価を済ませておかなければならない
+	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませておく
 	
 	\begin{verbatim}
 		CMD=test\ -e\ ${DIR}/data/${LINE}
