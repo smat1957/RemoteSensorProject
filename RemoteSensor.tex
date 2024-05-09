@@ -158,7 +158,7 @@
 #!/usr/bin/bash
 dir='/home/mat/Documents'
 paste <(date +%Y-%m-%d,\ %H:%M:%S) \
-<(python3 "${dir}"/procmain.py | awk '{print $1}')
+<(python3 ${dir}/procmain.py | awk '{print $1}')
 	\end{verbatim}
 \end{itembox}
 
@@ -307,8 +307,8 @@ dir='/home/mat/Documents'
 addr='192.168.3.27'
 usr='mat'
 pass='mypassword'
-sshpass -p "${pass}" ssh "${usr}"@"${addr}" "${dir}"/sensor.sh \
->> "${dir}"/w.txt
+sshpass -p ${pass} ssh ${usr}@${addr} ${dir}/sensor.sh \
+ >> ${dir}/w.txt
 	\end{verbatim}
 \end{itembox}
 
@@ -348,11 +348,11 @@ hour="date +%H"
 minu="date +%M"
 if [ "${hour}" -ge 23 ]; then
   if [ "${minu}" -gt 55 ]; then
-    cp "${dir}"/w.txt "${dir}"/bkup.txt
-    mv "${dir}"/w.txt "${dir}"/data/"${dates}".txt
-    touch "${dir}"/w.txt
-    source "${dir}"/venv11/bin/activate
-      "${dir}"/venv11/bin/python3 "${dir}"/daily.py "${dates}"
+    cp ${dir}/w.txt ${dir}/bkup.txt
+    mv ${dir}/w.txt ${dir}/data/${dates}.txt
+    touch ${dir}/w.txt
+    source ${dir}/venv11/bin/activate
+      ${dir}/venv11/bin/python3 ${dir}/daily.py "${dates}"
     deactivate
   fi
 fi
@@ -480,8 +480,8 @@ hour="date +%H"
 minu="date +%M"
 if [ "${hour}" -ge 0 ]; then
   if [ "${minu}" -gt 0 ]; then
-    source "${dir}"/venv11/bin/activate
-      "${dir}"/venv11/bin/python3 "${dir}"/weekly.py "${dates}"
+    source ${dir}/venv11/bin/activate
+      ${dir}/venv11/bin/python3 ${dir}/weekly.py "${dates}"
     deactivate
   fi
 fi
@@ -714,9 +714,9 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 	\begin{verbatim}
 		#!/usr/bin/bash
 		dir='/home/mat/Documents'
-		cd "${dir}" 
-		source "${dir}"/venv11/bin/activate
-		  python3 "${dir}"/rtplot.py
+		cd ${dir}
+		source ${dir}/venv11/bin/activate
+		  python3 ${dir}/rtplot.py
 		deactivate
 	\end{verbatim}
 \end{itembox}
@@ -752,7 +752,7 @@ dir='/home/mat/Documents'
 dates="date +%Y-%m-%d"
 hour="date +%H"
 minu="date +%M"
-if [ ${dour} -ge 23 ]; then
+if [ ${hour} -ge 23 ]; then
   if [ ${minu} -gt 55 ]; then
     cp ${dir}/w.txt ${dir}/bkup.txt
     mv ${dir}/w.txt ${dir}/data/${dates}.txt
@@ -809,7 +809,7 @@ for d in range(ten_days):
 for fname in lacklist:
   #if fname != today:
   with open('lackfiles.txt', 'w') as f:
-    f.write(fname.strftime(s_format)+'.txt')
+    f.write(fname.strftime(s_format)+'.txt'+'\n')
 	\end{verbatim}
 \end{itembox}
 
@@ -822,36 +822,55 @@ Pythonのプログラムを実行した段階で、
 #!/bin/bash
 TODAY=`date +%Y-%m-%d`
 searchstring="${TODAY}.txt"
-PASS='password'
+PWRD='passiword'
 USR='mat'
 ADDR='192.168.3.27'
 DIR='/home/mat/Documents'
 FILE_NAME=${DIR}/lackfiles.txt
 while read LINE
 do
-  match=$(echo ${LINE} | awk "/^$searchstring/")
-  if [ -n ${match} ]; then
+  match=$(echo "${LINE}" | awk "/^$searchstring/")
+  if [ -n "${match}" ]; then
     cp ${DIR}/w.txt ${DIR}/ww.txt
-    sshpass -p ${PASS} ssh ${USR}@${ADDR} \
-      cat ${DIR}/w.txt >> ${DIR}/ww.txt
+    sshpass -p ${PWRD} ssh ${USR}@${ADDR} cat ${DIR}/w.txt \
+      >> ${DIR}/ww.txt
     sort -u ${DIR}/ww.txt > ${DIR}/w.txt
+    rm ${DIR}/ww.txt
   else
-    RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} \
-      'test -f ${DIR}/data/${LINE};echo $?')
+    CMD=test\ -e\ ${DIR}/data/${LINE}
+    RC=$(sshpass -p ${PWRD} ssh ${USR}@${ADDR} ${CMD};echo $?)
     if [ ${RC} -eq 0 ]; then
-      sshpass -p ${PASS} scp ${USR}@${ADDR}:${DIR}/data/${LINE} \
-       ${DIR}/data/${LINE}
-    fi 
-  fi 
+      sshpass -p ${PWRD} scp ${USR}@${ADDR}:${DIR}/data/${LINE}\
+        ${DIR}/data/${LINE}
+    fi
+  fi
 done < ${FILE_NAME}
 	\end{verbatim}
 \end{itembox}
 
 \newpage
-
 ただしプログラムを実行した当日のデータについては、ローカルマシンとリモートマシンの両方にある可能性があるので、両方をマージしてローカルマシン上のデータとした
 
-リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする
+リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする\\
+
+【shell 記述上の注意】
+
+\begin{itemize}
+	\item \$\{LINE\}と\$\{match\}は、ダブルクゥオーテーションで囲む必要がある	
+	\begin{verbatim}
+		match=$(echo "${LINE}" | awk "/^$searchstring/")
+		if [ -n "${match}" ]; then
+	\end{verbatim}
+	\item shellの変数名をダブルクオートで囲む必要がある場合とはどんな場合に必要なのか？不明（ダブルクオートで囲まないと評価してくれないことがある）
+	\item if文の -n は、"\$\{match\}"が空でないならばという意味（空ならばは、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくる
+	\item 予めCMD変数に、\$\{LINE\}と\$\{DIR\}の評価を済ませておかなければならない
+	
+	\begin{verbatim}
+		CMD=test\ -e\ ${DIR}/data/${LINE}
+		RC=$(sshpass -p ${PWRD} ssh ${USR}@${ADDR} ${CMD};echo $?)
+	\end{verbatim}
+	\item 「test -e ファイル名」は、「test -f ファイル名」でも動くかもしれない
+\end{itemize}
 
 \newpage
 
