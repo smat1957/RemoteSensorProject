@@ -122,7 +122,7 @@
 	\item 低電力で動作可能な高感度の臭気センサ
 	\item コンパクトなRaspberry Pi Zero と重ねて使用可能な　pHAT　サイズ
 	\item アンモニア、水素、アルコール、一酸化炭素、メタンなど揮発性気体、タバコ、木材燃焼発生した煙など様々な気体に対応
-	\item 連続通電を許容するので、様々な所での継続的なチェックが可能（動作時にはセンサ部が非常に高温となるため、取り扱いには注意）
+	\item 連続通電を許容するので、様々な所での継続的なチェックが可能（動作時にはセンサ部が非常に高温となるため、取りS扱いには注意）
 	\item 動作状況が見えるステータスLEDにより、駆動状況の確認が容易
 \end{itemize}
 
@@ -307,8 +307,8 @@ dir='/home/mat/Documents'
 addr='192.168.3.27'
 usr='mat'
 pass='mypassword'
-sshpass -p ${pass} ssh ${usr}@${addr} ${dir}/sensor.sh \
- >> ${dir}/w.txt
+sshpass -p ${pass} ssh ${usr}@${addr} \
+  ${dir}/sensor.sh >> ${dir}/w.txt
 	\end{verbatim}
 \end{itembox}
 
@@ -343,16 +343,16 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 	\begin{verbatim}
 #!/usr/bin/bash
 dir='/home/mat/Documents'
-dates="date +%Y-%m-%d"
-hour="date +%H"
-minu="date +%M"
+dates=$(date +%Y-%m-%d)
+hour=$(date +%H)
+minu=$(date +%M)
 if [ ${hour} -ge 23 ]; then
   if [ ${minu} -gt 55 ]; then
     cp ${dir}/w.txt ${dir}/bkup.txt
     mv ${dir}/w.txt ${dir}/data/${dates}.txt
     touch ${dir}/w.txt
     source ${dir}/venv11/bin/activate
-      ${dir}/venv11/bin/python3 ${dir}/daily.py ${dates}
+      python3 ${dir}/daily.py ${dates}
     deactivate
   fi
 fi
@@ -475,13 +475,13 @@ Pythonのプログラムは、第1引数に日付を受け取ることができ�
 	\begin{verbatim}
 #!/usr/bin/bash
 dir='/home/mat/Documents'
-dates="date +%Y-%m-%d"
-hour="date +%H"
-minu="date +%M"
+dates=$(date +%Y-%m-%d)
+hour=$(date +%H)
+minu=$(date +%M)
 if [ ${hour} -ge 0 ]; then
   if [ ${minu} -gt 0 ]; then
     source ${dir}/venv11/bin/activate
-      ${dir}/venv11/bin/python3 ${dir}/weekly.py ${dates}
+      python3 ${dir}/weekly.py ${dates}
     deactivate
   fi
 fi
@@ -749,9 +749,9 @@ ${dir}/sensor.sh >> ${dir}/w.txt
 	\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
-dates="date +%Y-%m-%d"
-hour="date +%H"
-minu="date +%M"
+dates=$(date +%Y-%m-%d)
+hour=$(date +%H)
+minu=$(date +%M)
 if [ ${hour} -ge 23 ]; then
   if [ ${minu} -gt 55 ]; then
     cp ${dir}/w.txt ${dir}/bkup.txt
@@ -807,79 +807,80 @@ for d in range(ten_days):
     lacklist.append(day)
 
 for fname in lacklist:
-  #if fname != today:
-  with open('lackfiles.txt', 'w') as f:
-    f.write(fname.strftime(s_format)+'.txt'+'\n')
+  print(fname.strftime(s_format))
 	\end{verbatim}
 \end{itembox}
 
 Pythonのプログラムを実行した段階で、
-ローカルに無い日付のファイル名が分かったので、
-それをリモートからとってきてローカルに保存するshell を実行する
-
-\begin{itembox}[l]{/home/mat/Documents/lack.sh}
-	\begin{verbatim}
-#!/bin/bash
-TODAY="date +%Y-%m-%d"
-searchstring=${TODAY}.txt
-PASS='mypassword'
-USR='mat'
-ADDR='192.168.3.27'
-DIR='/home/mat/Documents'
-FILE_NAME=${DIR}/lackfiles.txt
-while read LINE
-do
-  match=$(echo "${LINE}" | awk "/^$searchstring/")
-  if [ -n "${match}" ]; then
-    cp ${DIR}/w.txt ${DIR}/ww.txt
-    sshpass -p ${PASS} ssh ${USR}@${ADDR} cat ${DIR}/w.txt \
-      >> ${DIR}/ww.txt
-    sort -u ${DIR}/ww.txt > ${DIR}/w.txt
-    rm ${DIR}/ww.txt
-  else
-    CMD=test\ -e\ ${DIR}/data/${LINE}
-    RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
-    if [ ${RC} -eq 0 ]; then
-      sshpass -p ${PASS} scp ${USR}@${ADDR}:${DIR}/data/${LINE}\
-        ${DIR}/data/${LINE}
-    fi
-  fi
-done < ${FILE_NAME}
-	\end{verbatim}
-\end{itembox}
-
-\newpage
-ただしプログラムを実行した当日のデータについては、ローカルマシンとリモートマシンの両方にある可能性があるので、両方をマージしてローカルマシン上のデータとした
-
-リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする\\
+ローカルに無いファイル名（実は日付の部分だけ）が分かったので、この後は
+ローカルとリモートのマシンから、その日付のデータを集めてきて整理する
+（リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする）\\
 
 【shell 記述上の注意】
 
 \begin{itemize}
 	\item \$\{LINE\}と\$\{match\}は、ダブルクオートで囲む必要がある	
 	\begin{verbatim}
-		match=$(echo "${LINE}" | awk "/^$searchstring/")
+		TODAY=$(date +%Y-%m-%d)
+		match=$(echo "${LINE}" | awk "/^${TODAY}/")
 		if [ -n "${match}" ]; then
 	\end{verbatim}
-	\item shellの変数名をダブルクオートで囲まないと期待した評価がなされないことがある（単なる文字列になっていて、それを評価した結果の文字列が必要ならばダブルクオートで囲む必要があるということ）\\例えば、次のケースでは\$\{TODAY\}は"date +\%Y-\%m-\%d"とダブルクオートで囲んでいるため、評価済みの文字列が\$\{TODAY\}に入っており、searchstring=\$\{TODAY\}.txtの形でOk
+	\item shellの変数名をダブルクオートで囲まないと期待した評価がなされないことがある（シングルクゥオートで囲むと単なる文字列）
+	\item コマンドとして実行した結果の文字列が必要なら、アクサングラーブ（バッククゥオート）でコマンドを囲むか、あるいは\$(command)の形にする（アクサングラーブはシングルクゥオートと見分けにくい）例えば、次の\${match}ではTODAYをダブルクゥオートで囲んでいるが失敗する（TODAYをシングルクゥオートで囲むと当然失敗する）
 	\begin{verbatim}
-TODAY="date +%Y-%m-%d"
-searchstring=${TODAY}.txt
+	TODAY="date +%Y-%m-%d"
+	match=$(echo "${LINE}" | awk "/^${TODAY}/")
 	\end{verbatim}
-一方、次の様にシングルクオートで囲んでいる場合、\$\{TODAY\}は単に指定した文字列そのものなので、その文字列は評価される必要があって、searchstring="\$\{TODAY\}".txtの様にダブルクオートで囲んで評価させることになる
-\begin{verbatim}
-	TODAY='date +%Y-%m-%d'
-	searchstring="${TODAY}".txt
-\end{verbatim}
+	アクサングラーブで囲むか、\$(command)の形にすると正しく評価される
+	\begin{verbatim}
+	TODAY=`date +%Y-%m-%d'
+	match=$(echo "${LINE}" | awk "/^${TODAY}/")
+	\end{verbatim}
 	\item if文の -n は、"\$\{match\}"が空でないならばという意味（空ならばは、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくる
 	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませておく
-	
 	\begin{verbatim}
 		CMD=test\ -e\ ${DIR}/data/${LINE}
 		RC=$(sshpass -p ${PWRD} ssh ${USR}@${ADDR} ${CMD};echo $?)
 	\end{verbatim}
 	\item 「test -e ファイル名」は、「test -f ファイル名」でも動くかもしれない
+	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している。ファイルから渡すなら、cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
 \end{itemize}
+
+\begin{itembox}[l]{/home/mat/Documents/lack.sh}
+	\begin{verbatim}
+#!/bin/bash
+TODAY=$(date +%Y-%m-%d)
+PASS='mypassword'
+USR='mat'
+ADDR='192.168.3.27'
+DIR='/home/mat/Documents'
+cp ${DIR}/w.txt ${DIR}/bkup.txt
+source ${DIR}/venv11/bin/activate
+  python3 ${DIR}/lackdata.py |　\
+while read LINE; do (
+  grep ^"${LINE}" ${DIR}/w.txt > ${DIR}/"${LINE}".wrk
+  sshpass -p ${PASS} ssh ${USR}@${ADDR} \
+    grep ^"${LINE}" ${DIR}/w.txt >> ${DIR}/"${LINE}".wrk
+  CMD=test\ -e\ ${DIR}/data/"${LINE}".txt
+  RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
+  if [ ${RC} -eq 0 ]; then
+    sshpass -p ${PASS} ssh ${USR}@${ADDR} \
+     grep ^"${LINE}" ${DIR}/data/${LINE}.txt >> ${DIR}/"${LINE}".wrk
+  fi
+  uniq ${DIR}/"${LINE}".wrk > ${DIR}/"${LINE}".wrk2
+  sort ${DIR}/"${LINE}".wrk2 > ${DIR}/"${LINE}".wrk
+  rm ${DIR}/"${LINE}".wrk2
+  match=$(echo "${LINE}" | awk "/^${TODAY}/")
+  if [ -n "${match}" ]; then
+    cp ${DIR}/"${LINE}".wrk ${DIR}/w.txt
+  else
+    cp ${DIR}/"${LINE}".wrk ${DIR}/data/"${LINE}".txt
+  fi
+  rm ${DIR}/"${LINE}".wrk
+) < /dev/null; done
+deactivate
+	\end{verbatim}
+\end{itembox}
 
 \newpage
 
