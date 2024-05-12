@@ -3,5 +3,5 @@
 dir='/home/mat/Documents'
 ip='192.168.3.27'
 pass='mypassword'
-usr='myuserid'
-sshpass -p "${pass}" ssh "${usr}"@"${ip}" ~/Documents/sensor.sh >> "${dir}"/w.txt
+usr='mat'
+sshpass -p ${pass} ssh ${usr}@${ip} ${dir}/sensor.sh >> ${dir}/w.txt
