@@ -871,7 +871,7 @@ deactivate
 		match=$(echo "${LINE}" | awk "/^${TODAY}/")
 		if [ -n "${match}" ]; then
 	\end{verbatim}
-	\item if文の -n は、"\$\{match\}"が空でないならばという意味（空ならばは、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくる
+	\item if文の -n は、"\$\{match\}"が「空でないならば」の意味（「空ならば」は、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくるので空ではない
 	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませておく
 	\begin{verbatim}
 		CMD=test\ -e\ ${DIR}/data/${LINE}.txt
