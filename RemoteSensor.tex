@@ -830,7 +830,7 @@ Pythonのプログラムを実行した段階で、
 	TODAY="date +%Y-%m-%d"
 	match=$(echo "${LINE}" | awk "/^${TODAY}/")
 	\end{verbatim}
-	アクサングラーブで囲むか、\$(command)の形にすると期待通り評価されるが、そもそもアクサングラーブはシングルクゥオートと見分けがつきにくい
+	アクサングラーブで囲むか、\$(command)の形にすると期待通り評価されるが、そもそもアクサングラーブ（`）はシングルクゥオート（'）と見分けがつきにくい
 	\begin{verbatim}
 	TODAY=`date +%Y-%m-%d`
 	match=$(echo "${LINE}" | awk "/^${TODAY}/")
