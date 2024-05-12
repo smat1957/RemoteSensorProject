@@ -9,12 +9,12 @@ source ${DIR}/venv11/bin/activate
   ${DIR}/venv11/bin/python3 ${DIR}/lackdata.py | \
 while read LINE; do (
   grep ^"${LINE}" ${DIR}/w.txt > ${DIR}/"${LINE}".wrk
-  sshpass -p ${PASS} ssh ${USR}@${ADDR}\
+  sshpass -p ${PASS} ssh -n ${USR}@${ADDR}\
     grep ^"${LINE}" ${DIR}/w.txt >> ${DIR}/"${LINE}".wrk
   CMD=test\ -e\ ${DIR}/data/"${LINE}".txt
-  RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
+  RC=$(sshpass -p ${PASS} ssh -n ${USR}@${ADDR} ${CMD};echo $?)
   if [ ${RC} -eq 0 ]; then
-    sshpass -p ${PASS} ssh ${USR}@${ADDR}\
+    sshpass -p ${PASS} ssh -n ${USR}@${ADDR}\
       grep ^"${LINE}" ${DIR}/data/${LINE}.txt >> ${DIR}/"${LINE}".wrk
   fi
   sort ${DIR}/"${LINE}".wrk > ${DIR}/"${LINE}".wrk2
