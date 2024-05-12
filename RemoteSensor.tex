@@ -839,7 +839,7 @@ Pythonのプログラムを実行した段階で、
 	\item if文の -n は、"\$\{match\}"が空でないならばという意味（空ならばは、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくる
 	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませておく
 	\begin{verbatim}
-		CMD=test\ -e\ ${DIR}/data/${LINE}
+		CMD=test\ -e\ ${DIR}/data/${LINE}.txt
 		RC=$(sshpass -p ${PWRD} ssh ${USR}@${ADDR} ${CMD};echo $?)
 	\end{verbatim}
 	\item 「test -e ファイル名」は、「test -f ファイル名」でも動くかもしれない
