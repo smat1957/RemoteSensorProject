@@ -17,8 +17,8 @@ while read LINE; do (
     sshpass -p ${PASS} ssh ${USR}@${ADDR}\
       grep ^"${LINE}" ${DIR}/data/${LINE}.txt >> ${DIR}/"${LINE}".wrk
   fi
-  uniq ${DIR}/"${LINE}".wrk > ${DIR}/"${LINE}".wrk2
-  sort ${DIR}/"${LINE}".wrk2 > ${DIR}/"${LINE}".wrk
+  sort ${DIR}/"${LINE}".wrk > ${DIR}/"${LINE}".wrk2
+  uniq ${DIR}/"${LINE}".wrk2 > ${DIR}/"${LINE}".wrk
   rm ${DIR}/"${LINE}".wrk2
   match=$(echo "${LINE}" | awk "/^${TODAY}/")
   if [ -n "${match}" ]; then
