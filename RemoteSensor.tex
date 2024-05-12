@@ -840,7 +840,7 @@ Pythonのプログラムを実行した段階で、
 	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませておく
 	\begin{verbatim}
 		CMD=test\ -e\ ${DIR}/data/${LINE}.txt
-		RC=$(sshpass -p ${PWRD} ssh ${USR}@${ADDR} ${CMD};echo $?)
+		RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
 	\end{verbatim}
 	\item 「test -e ファイル名」は、「test -f ファイル名」でも動くかもしれない
 	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している。ファイルから渡すなら、cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
