@@ -817,50 +817,50 @@ for fname in lacklist:
 %（リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする）
 \begin{itembox}[l]{/home/mat/Documents/lack.sh}
 	\begin{verbatim}
-#!/bin/bash
+#!/usr/bin/bash
 TODAY=$(date +%Y-%m-%d)
 PASS='mypassword'
 USR='mat'
 ADDR='192.168.3.27'
 DIR='/home/mat/Documents'
 cp ${DIR}/w.txt ${DIR}/bkup.txt
-source ${DIR}/venv11/bin/activate
-  python3 ${DIR}/lackdata.py |　\
-while read LINE; do (
-  grep ^${LINE} ${DIR}/w.txt > ${DIR}/${LINE}.wrk
+python3 ${DIR}/lackdata.py　|　while read LINE; do (
+  grep ^${LINE} ${DIR}/bkup.txt > ${DIR}/${LINE}.wrk
   sshpass -p ${PASS} ssh -n ${USR}@${ADDR} \
-    grep ^${LINE} ${DIR}/w.txt >> ${DIR}/${LINE}.wrk
+    "grep ^${LINE} ${DIR}/w.txt" >> ${DIR}/${LINE}.wrk
   CMD=test\ -e\ ${DIR}/data/${LINE}.txt
   RC=$(sshpass -p ${PASS} ssh -n ${USR}@${ADDR} ${CMD};echo $?)
   if [ ${RC} -eq 0 ]; then
     sshpass -p ${PASS} ssh -n ${USR}@${ADDR} \
-      grep ^${LINE} ${DIR}/data/${LINE}.txt >> ${DIR}/${LINE}.wrk
+      "grep ^${LINE} ${DIR}/data/${LINE}.txt" >> ${DIR}/${LINE}.wrk
   fi
-  sort ${DIR}/${LINE}.wrk > ${DIR}/${LINE}.wrk2
-  uniq ${DIR}/${LINE}.wrk2 > ${DIR}/${LINE}.wrk
-  rm ${DIR}/${LINE}.wrk2
+  sort ${DIR}/${LINE}.wrk | uniq - > ${DIR}/${LINE}.wrk2
+  rm ${DIR}/${LINE}.wrk
   match=$(echo "${LINE}" | awk "/^${TODAY}/")
   if [ -n "${match}" ]; then
-    cp ${DIR}/${LINE}.wrk ${DIR}/w.txt
+    cp ${DIR}/${LINE}.wrk2 ${DIR}/w.txt
   else
-    cp ${DIR}/${LINE}.wrk ${DIR}/data/${LINE}.txt
+    cp ${DIR}/${LINE}.wrk2 ${DIR}/data/${LINE}.txt
   fi
-  rm ${DIR}/${LINE}.wrk
+  rm ${DIR}/${LINE}.wrk2
 ) < /dev/null; done
-deactivate
 	\end{verbatim}
 \end{itembox}
+
+\newpage
 
 【shell を記述する上での注意点】
 
 \begin{itemize}
-	\item \$\{LINE\}と\$\{match\}は、ダブルクオートで囲む必要がある	
+	\item 次の部分で、\$\{LINE\}と\$\{match\}はダブルクオートで囲む必要がある	
 	\begin{verbatim}
 		TODAY=$(date +%Y-%m-%d)
+		... ...
 		match=$(echo "${LINE}" | awk "/^${TODAY}/")
+		if [ -n "${match}" ]; then
 	\end{verbatim}
-	shellの変数名をダブルクオートで囲まないと期待した評価がなされないことがある（シングルクゥオートで囲むと単なる文字列になる）
-	\item コマンドとして実行した結果の文字列が必要なら、アクサングラーブ（バッククゥオート）でコマンドを囲むか、あるいは\$(command)の形にする.例えば次の\${match}では、TODAYをダブルクゥオートで囲んでいるが失敗する（もちろん、TODAYをシングルクゥオートで囲んでも、当然の様に失敗することになる）
+	shellの変数名をダブルクオートで囲まないと期待した評価がなされないことがある（シングルクゥオートで囲むと単なる文字列になってしまう）
+	\item コマンドとして実行した結果の文字列が必要なら、アクサングラーブ（バッククゥオート）でコマンドを囲むか、あるいは\$(command)の形にする.例えば次の\${match}では、TODAYはdateコマンドをダブルクゥオートで囲んでいるが失敗する（シングルクゥオートで囲んでも、当然の様に失敗することになる）
 	\begin{verbatim}
 		TODAY="date +%Y-%m-%d"
 		match=$(echo "${LINE}" | awk "/^${TODAY}/")
@@ -872,18 +872,18 @@ deactivate
 		if [ -n "${match}" ]; then
 	\end{verbatim}
 	\item if文の -n は、"\$\{match\}"が「空でないならば」の意味（「空ならば」は、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくるので空ではない
-	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませておく
+	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませている
 	\begin{verbatim}
 		CMD=test\ -e\ ${DIR}/data/${LINE}.txt
 		RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
 	\end{verbatim}
 	\item 「test -e ファイル名」は、「test -f ファイル名」でも動くかもしれない
+	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している。ファイルを介して渡すなら、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
 	\item while ループの中で ssh（や rsh）を実行すると、読み込むファイルが複数行あっても、1行目しか処理されないという現象に遭遇する.
 	
 	sshを実行すると標準入力がsshに振り向けられるため、read で読んだ1行のみならずファイル全体がsshに渡されてしまう. 結果としてsshを実行した後にはもう読める行がない事になり、whileループは1回で終了してしまうことが起こる.
 	
 	これを防ぐには、sshに -n オプションを付けて、標準入力をリダイレクトするのではなく、/dev/null をリダイレクトする様に指示する必要がある.（なお、この辺りの事情はrshコマンドでも同じ）
-	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している。ファイルを介して渡すなら、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
 \end{itemize}
 
 \newpage
