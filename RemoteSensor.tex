@@ -155,7 +155,7 @@
 
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 dir='/home/mat/Documents'
 paste <(date +%Y-%m-%d,\ %H:%M:%S) \
 <(python3 ${dir}/procmain.py | awk '{print $1}')
@@ -301,7 +301,7 @@ sshでリモートのshellを実行した結果を受け取り、ローカルの
 
 \begin{itembox}[l]{/home/mat/Documents/rsensor.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 ### sudo apt install -y sshpass ###
 dir='/home/mat/Documents'
 addr='192.168.3.27'
@@ -341,7 +341,7 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 
 \begin{itembox}[l]{/home/mat/Documents/daily.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
 hour=$(date +%H)
@@ -473,7 +473,7 @@ Pythonのプログラムは、第1引数に日付を受け取ることができ�
 
 \begin{itembox}[l]{/home/mat/Documents/weekly.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
 hour=$(date +%H)
@@ -712,7 +712,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 
 \begin{itembox}[l]{/home/mat/Desktop/rtplot.sh}
 	\begin{verbatim}
-		#!/usr/bin/bash
+		#!/usr/bin/sh
 		dir='/home/mat/Documents'
 		cd ${dir}
 		source ${dir}/venv11/bin/activate
@@ -817,7 +817,7 @@ for fname in lacklist:
 %（リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする）
 \begin{itembox}[l]{/home/mat/Documents/lack.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 TODAY=$(date +%Y-%m-%d)
 PASS='mypassword'
 USR='mat'
