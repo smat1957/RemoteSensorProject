@@ -289,6 +289,8 @@ cronの仕組みを使う（3つの時刻指定の処理を登録している）
 	\end{verbatim}
 \end{screen}
 
+daily.shとweekly.shを、shではなくbashによって起動させているのは、それぞれのshellの中でのPythonの仮想環境への移行が、shでは移行できないという現象があったため、bashで運用することとしたもの
+
 \newpage
 
 \subsection{リモートセンサの処理をローカルマシンから起動する}
@@ -745,7 +747,7 @@ bash ${dir}/sensor.sh >> ${dir}/w.txt
 	\end{verbatim}
 \end{itembox}
 
-リモートにも、（ローカルと同様のディレクトリ構成で）/home/mat/Documents/data を用意しておく
+リモートにも、（ローカルと同様のディレクトリ構成で）/home/mat/Documents/data フォルダを用意しておく
 
 \begin{itembox}[l]{/home/mat/Desktop/procdaily.sh}
 	\begin{verbatim}
