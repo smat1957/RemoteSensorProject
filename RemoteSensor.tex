@@ -837,7 +837,7 @@ python3 ${DIR}/lackdata.py　|　while read LINE; do (
   sort ${DIR}/${LINE}.wrk | uniq - > ${DIR}/${LINE}.wrk2
   rm ${DIR}/${LINE}.wrk
   if [ -s ${DIR}/${LINE}.wrk2 ]; then
-    match=$(echo "${LINE}" | awk "/^${TODAY}/")
+    match=$(echo ${LINE} | awk "/^${TODAY}/")
     if [ -n "${match}" ]; then
       cp ${DIR}/${LINE}.wrk2 ${DIR}/w.txt
     else
