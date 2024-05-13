@@ -854,24 +854,24 @@ python3 ${DIR}/lackdata.py　|　while read LINE; do (
 【shell を記述する上での注意点】
 
 \begin{itemize}
-	\item 次の部分で、\$\{LINE\}と\$\{match\}はダブルクオートで囲む必要がある	
+	\item 次の部分で、\$\{TODAY\}と\$\{match\}はダブルクオートで囲む必要がある	
 	\begin{verbatim}
 		TODAY=$(date +%Y-%m-%d)
 		... ...
-		match=$(echo "${LINE}" | awk "/^${TODAY}/")
+		match=$(echo ${LINE} | awk "/^${TODAY}/")
 		if [ -n "${match}" ]; then
 	\end{verbatim}
 	shellの変数名をダブルクオートで囲まないと期待した評価がなされないことがある（シングルクゥオートで囲むと単なる文字列になってしまう）
 	\item コマンドとして実行した結果の文字列が必要なら、アクサングラーブ（バッククゥオート）でコマンドを囲むか、あるいは\$(command)の形にする.例えば次の\${match}では、TODAYはdateコマンドをダブルクゥオートで囲んでいるが失敗する（シングルクゥオートで囲んでも当然の様に失敗する.自明のことだね）
 	\begin{verbatim}
 		TODAY="date +%Y-%m-%d"
-		match=$(echo "${LINE}" | awk "/^${TODAY}/")
+		match=$(echo ${LINE} | awk "/^${TODAY}/")
 	\end{verbatim}
 	アクサングラーブで囲むか、\$(command)の形にすると期待通り評価されるが、そもそもアクサングラーブ（`）はシングルクゥオート（'）と見分けがつきにくいので、\$(command)の記述の方がよい（好みの問題か？）
 	\begin{verbatim}
 		TODAY=`date +%Y-%m-%d`
 		... ...
-		match=$(echo "${LINE}" | awk "/^${TODAY}/")
+		match=$(echo ${LINE} | awk "/^${TODAY}/")
 		if [ -n "${match}" ]; then
 	\end{verbatim}
 	\item 変数TODAYの様に、dateの様な「コマンドを納めている変数」の場合、ダブルクゥオートで挟んだ変数"\$\{TODAY\}"に出会ったタイミングで、その中のコマンドが実行され、実行結果として得られた文字列が使える様になるということ（かな？）ダブルクゥオートで挟むことは「中のコマンドを実行して評価して下さい」という意味（変数をダブルクゥオートで挟まなかったら、その変数の中のコマンドをシングルクゥオートで挟んでいた場合と同じ、単なる文字列として扱われる様だ）
