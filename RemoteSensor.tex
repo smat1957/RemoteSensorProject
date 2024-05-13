@@ -881,7 +881,7 @@ python3 ${DIR}/lackdata.py　|　while read LINE; do (
 	\end{verbatim}
 	\item 「test -e <file\_path>」は、「test -f <file\_path>」でも動くかもしれない
 	\item if文の [ -s <file\_path> ] は、ファイルが存在し、なおかつ中身がある場合に True 、ファイルの中身が空 又は ファイルが存在しない場合には False が返る 
-	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している。\\もし、ファイル（FILE\_NAME）を介して渡すのであれば、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
+	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している\\もし、ファイル（FILE\_NAME）を介して渡すのであれば、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
 	\item while ループの中で ssh（や rsh）を実行すると、読み込むファイルが複数行あっても、1行目しか処理されないという現象に遭遇する.
 	
 	sshを実行すると標準入力がsshに振り向けられるため、read で読んだ1行のみならずファイル全体がsshに渡されてしまう. 結果としてsshを実行した後にはもう読める行がない事になり、whileループは1回で終了してしまうことが起こる.
