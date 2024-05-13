@@ -142,20 +142,20 @@
 %\begin{itemize}
 	Raspberrin Pi Zero WH 上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
 	
-	i2cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取られる
+	I2Cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取られる
 	
-	adrszOD.pyはch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出している
+	adrszOD.pyはAD変換器のch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出している
 	
-	dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要にならない様に、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になる様に整形している
+	dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要にならない様に、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になる様に整形する
 	
-	日付とセンサの出力する値が１行になる様にするため、pasteコマンド（テキストファイルを横に並べて結合するコマンド）を使っている\footnotemark[1]
+	日付とセンサの出力する値が１行になる様にするため、pasteコマンド（テキストファイルを横に並べて結合するコマンド）を使っている\footnotemark[1]（shでは動かないので、bashにする）
 	
 	paste の2つのオペランド、<(date +....)と、<(python3 ..procmain.py..)の各々のコマンドは、<(any command) の形に囲むことにより、読み取りのためのファイル記述子を指定したことになり、それぞれを2つのファイルの様に扱うことができる\footnote[1]{「Efficient Linuxコマンドライン」オライリー・ジャパン 初版第1刷p.108、p.156（プロセス置換）}
 %\end{itemize}
 
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
 	\begin{verbatim}
-#!/usr/bin/sh
+#!/usr/bin/bash
 dir='/home/mat/Documents'
 paste <(date +%Y-%m-%d,\ %H:%M:%S) \
 <(python3 ${dir}/procmain.py | awk '{print $1}')

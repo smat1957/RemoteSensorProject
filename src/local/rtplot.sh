@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/sh
 dir='/home/mat/Documents'
 cd ${dir}
 source ${dir}/venv11/bin/activate

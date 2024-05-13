@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
 hour=$(date +%H)

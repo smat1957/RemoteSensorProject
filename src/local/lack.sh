@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/sh
 TODAY=$(date +%Y-%m-%d)
 PASS='mypassword'
 USR='mat'
