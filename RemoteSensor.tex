@@ -836,11 +836,13 @@ python3 ${DIR}/lackdata.py　|　while read LINE; do (
   fi
   sort ${DIR}/${LINE}.wrk | uniq - > ${DIR}/${LINE}.wrk2
   rm ${DIR}/${LINE}.wrk
-  match=$(echo "${LINE}" | awk "/^${TODAY}/")
-  if [ -n "${match}" ]; then
-    cp ${DIR}/${LINE}.wrk2 ${DIR}/w.txt
-  else
-    cp ${DIR}/${LINE}.wrk2 ${DIR}/data/${LINE}.txt
+  if [ -s ${DIR}/${LINE}.wrk2 ]; then
+    match=$(echo "${LINE}" | awk "/^${TODAY}/")
+    if [ -n "${match}" ]; then
+      cp ${DIR}/${LINE}.wrk2 ${DIR}/w.txt
+    else
+      cp ${DIR}/${LINE}.wrk2 ${DIR}/data/${LINE}.txt
+    fi
   fi
   rm ${DIR}/${LINE}.wrk2
 ) < /dev/null; done
@@ -877,8 +879,9 @@ python3 ${DIR}/lackdata.py　|　while read LINE; do (
 		CMD=test\ -e\ ${DIR}/data/${LINE}.txt
 		RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
 	\end{verbatim}
-	\item 「test -e ファイル名」は、「test -f ファイル名」でも動くかもしれない
-	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している。ファイルを介して渡すなら、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
+	\item 「test -e <file\_path>」は、「test -f <file\_path>」でも動くかもしれない
+	\item if文の [ -s <file\_path> ] は、ファイルが存在し、なおかつ中身がある場合に True 、ファイルの中身が空 又は ファイルが存在しない場合には False が返る 
+	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している。\\もし、ファイル（FILE\_NAME）を介して渡すのであれば、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
 	\item while ループの中で ssh（や rsh）を実行すると、読み込むファイルが複数行あっても、1行目しか処理されないという現象に遭遇する.
 	
 	sshを実行すると標準入力がsshに振り向けられるため、read で読んだ1行のみならずファイル全体がsshに渡されてしまう. 結果としてsshを実行した後にはもう読める行がない事になり、whileループは1回で終了してしまうことが起こる.

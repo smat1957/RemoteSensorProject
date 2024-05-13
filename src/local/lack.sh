@@ -15,14 +15,18 @@ while read LINE; do (
   if [ ${RC} -eq 0 ]; then
     sshpass -p ${PASS} ssh -n ${USR}@${ADDR} \
       "grep ^${LINE} ${DIR}/data/${LINE}.txt" >> ${DIR}/${LINE}.wrk
+  else
+    echo ${LINE}.txt ': not exists at remote machine'
   fi
   sort ${DIR}/${LINE}.wrk | uniq - > ${DIR}/${LINE}.wrk2
   rm ${DIR}/${LINE}.wrk
-  match=$(echo "${LINE}" | awk "/^${TODAY}/")
-  if [ -n "${match}" ]; then
-    cp ${DIR}/${LINE}.wrk2 ${DIR}/w.txt
-  else
-    cp ${DIR}/${LINE}.wrk2 ${DIR}/data/${LINE}.txt
+  if [ -s ${DIR}/${LINE}.wrk2 ]; then
+    match=$(echo "${LINE}" | awk "/^${TODAY}/")
+    if [ -n "${match}" ]; then
+      cp ${DIR}/${LINE}.wrk2 ${DIR}/w.txt
+    else
+      cp ${DIR}/${LINE}.wrk2 ${DIR}/data/${LINE}.txt
+    fi
   fi
   rm ${DIR}/${LINE}.wrk2
 ) < /dev/null; done
