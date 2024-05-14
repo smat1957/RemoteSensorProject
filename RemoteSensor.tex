@@ -270,8 +270,8 @@ cronの仕組みを使う（3つの時刻指定の処理を登録している）
 	\begin{verbatim}
 		MAILTO=""
 		*/5 * * * * sh /home/mat/Documents/rsensor.sh
-		56 23 * * * bash /home/mat/Documents/daily.sh
-		1 0 * * Sun bash /home/mat/Documents/weekly.sh
+		56 23 * * * sh /home/mat/Documents/daily.sh
+		1 0 * * Sun sh /home/mat/Documents/weekly.sh
 	\end{verbatim}
 \end{itembox}
 
@@ -289,7 +289,7 @@ cronの仕組みを使う（3つの時刻指定の処理を登録している）
 	\end{verbatim}
 \end{screen}
 
-daily.shとweekly.shを、shではなくbashによって起動させているのは、それぞれのshellの中でのPythonの仮想環境への移行が、shでは移行できないという現象があったため、bashで運用することとしたもの
+%daily.shとweekly.shを、shではなくbashによって起動させているのは、それぞれのshellの中でのPythonの仮想環境への移行が、shでは移行できないという現象があったため、bashで運用することとしたもの
 
 \newpage
 
@@ -343,7 +343,7 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 
 \begin{itembox}[l]{/home/mat/Documents/daily.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
 hour=$(date +%H)
@@ -353,7 +353,7 @@ if [ ${hour} -ge 23 ]; then
     cp ${dir}/w.txt ${dir}/bkup.txt
     mv ${dir}/w.txt ${dir}/data/${dates}.txt
     touch ${dir}/w.txt
-    source ${dir}/venv11/bin/activate
+    . ${dir}/venv11/bin/activate
       python3 ${dir}/daily.py ${dates}
     deactivate
   fi
@@ -475,14 +475,14 @@ Pythonのプログラムは、第1引数に日付を受け取ることができ�
 
 \begin{itembox}[l]{/home/mat/Documents/weekly.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
 hour=$(date +%H)
 minu=$(date +%M)
 if [ ${hour} -ge 0 ]; then
   if [ ${minu} -gt 0 ]; then
-    source ${dir}/venv11/bin/activate
+    . ${dir}/venv11/bin/activate
       python3 ${dir}/weekly.py ${dates}
     deactivate
   fi
@@ -714,16 +714,16 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 
 \begin{itembox}[l]{/home/mat/Desktop/rtplot.sh}
 	\begin{verbatim}
-		#!/usr/bin/bash
+		#!/usr/bin/sh
 		dir='/home/mat/Documents'
 		cd ${dir}
-		source ${dir}/venv11/bin/activate
+		. ${dir}/venv11/bin/activate
 		  python3 ${dir}/rtplot.py
 		deactivate
 	\end{verbatim}
 \end{itembox}
 
-このshellは、/usr/bin/sh で動かそうとすると「はて？source って何のこと？」などと言ってくるので、/usr/bin/bash で動かす様にする
+%このshellは、/usr/bin/sh で動かそうとすると「はて？source って何のこと？」などと言ってくるので、/usr/bin/bash で動かす様にする
 
 \newpage
 
@@ -821,14 +821,14 @@ for fname in lacklist:
 %（リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする）
 \begin{itembox}[l]{/home/mat/Documents/lack.sh}
 	\begin{verbatim}
-#!/usr/bin/bash
+#!/usr/bin/sh
 TODAY=$(date +%Y-%m-%d)
 PASS='mypassword'
 USR='mat'
 ADDR='192.168.3.27'
 DIR='/home/mat/Documents'
 cp ${DIR}/w.txt ${DIR}/bkup.txt
-source ${DIR}/venv11/bin/activate
+. ${DIR}/venv11/bin/activate
   python3 ${DIR}/lackdata.py　|　\
 while read LINE; do (
   grep ^${LINE} ${DIR}/bkup.txt > ${DIR}/${LINE}.wrk
@@ -899,9 +899,9 @@ deactivate
 	sshを実行すると標準入力がsshに振り向けられるため、read で読んだ1行のみならずファイル全体がsshに渡されてしまう. 結果としてsshを実行した後にはもう読める行がない事になり、whileループは1回で終了してしまうことが起こる.
 	
 	これを防ぐには、sshに -n オプションを付けて、標準入力をリダイレクトするのではなく、/dev/null をリダイレクトする様に指示する必要がある.（なお、この辺りの事情はrshコマンドでも同じ）
-	\item Pythonの仮想環境として作ったvenv11に入るために、source ... /activate などとする場合、/usr/bin/sh では動かないので、/usr/bin/bash を指定して動作させている\\
-	本システムの中で、Pythonの仮想環境に移る必要性からbashで動作させなければならないshellは、ローカルマシン上のdaily.sh、weekly.sh、lack.sh、rtplot.shの4つ. またリモートマシンのsensor.shは、プロセス置換を実施するためにbashが必要になった. それ以外のshellは/usr/bin/shで動作する（全部bashにしてしまっても良かったかもしれない）
-	\item cronなどにおいて、shによってshellを起動しておきながら、その起動されたshellの冒頭で「\#!/usr/bin/bashでよろしく」などと指示することもあるが、特に問題は生じていない
+	%\item Pythonの仮想環境として作ったvenv11に入るために、source ... /activate などとする場合、/usr/bin/sh では動かないので、/usr/bin/bash を指定して動作させている\\
+	%本システムの中で、Pythonの仮想環境に移る必要性からbashで動作させなければならないshellは、ローカルマシン上のdaily.sh、weekly.sh、lack.sh、rtplot.shの4つ. またリモートマシンのsensor.shは、プロセス置換を実施するためにbashが必要になった. それ以外のshellは/usr/bin/shで動作する（全部bashにしてしまっても良かったかもしれない）
+	%\item cronなどにおいて、shによってshellを起動しておきながら、その起動されたshellの冒頭で「\#!/usr/bin/bashでよろしく」などと指示することもあるが、特に問題は生じていない
 \end{itemize}
 
 \newpage

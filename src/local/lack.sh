@@ -1,11 +1,11 @@
-#!/usr/bin/bash
+#!/usr/bin/sh
 TODAY=$(date +%Y-%m-%d)
 PASS='mypassword'
 USR='mat'
 ADDR='192.168.3.27'
 DIR='/home/mat/Documents'
 cp ${DIR}/w.txt ${DIR}/bkup.txt
-source ${DIR}/venv11/bin/activate
+. ${DIR}/venv11/bin/activate
   python3 ${DIR}/lackdata.py | \
 while read LINE; do (
   grep ^${LINE} ${DIR}/bkup.txt > ${DIR}/${LINE}.wrk
