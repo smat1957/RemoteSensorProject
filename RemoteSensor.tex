@@ -16,7 +16,107 @@
 \usepackage {boites}
 \usepackage{eclbkbox}
 \usepackage[hyphens]{url}
-
+\usepackage{here}
+%\usepackage{listings,jlisting} %日本語のコメントアウトをする場合jlistingが必要
+\begin{comment}
+%ここからソースコードの表示に関する設定
+%\lstset{
+	%  basicstyle={\ttfamily},
+	%  identifierstyle={\small},
+	%  commentstyle={\smallitshape},
+	%  keywordstyle={\small\bfseries},
+	%  ndkeywordstyle={\small},
+	%  stringstyle={\small\ttfamily},
+	%  frame={tb},
+	%  breaklines=true,
+	%  columns=[l]{fullflexible},
+	%  numbers=left,
+	%  xrightmargin=0zw,
+	%  xleftmargin=3zw,
+	%  numberstyle={\scriptsize},
+	%  stepnumber=1,
+	%  numbersep=1zw,
+	%  lineskip=-0.5ex
+	%}
+\lstset{
+	basicstyle={\ttfamily},
+	identifierstyle={\small},
+	commentstyle={\smallitshape},
+	keywordstyle={\small\bfseries},
+	ndkeywordstyle={\small},
+	stringstyle={\small\ttfamily},
+	frame={tb},
+	breaklines=true,
+	columns=[l]{fullflexible},
+	numbers=left,
+	xrightmargin=0zw,
+	xleftmargin=3zw,
+	numberstyle={\scriptsize},
+	stepnumber=1,
+	numbersep=1zw,
+	lineskip=-0.5ex
+}
+%ここまでソースコードの表示に関する設定
+\makeatletter
+\def\ps@plainfoot{%
+	\let\@mkboth\@gobbletwo
+	\let\@oddhead\@empty
+	\def\@oddfoot{\normalfont\hfil-- \thepage\ --\hfil}%
+	\let\@evenhead\@empty
+	\let\@evenfoot\@oddfoot}
+\let\ps@plain\ps@plainfoot
+\renewcommand{\chapter}{%
+	\if@openright\cleardoublepage\else\clearpage\fi
+	\global\@topnum\z@
+	\secdef\@chapter\@schapter}
+\makeatother
+%
+\newcommand{\maru}[1]{{\ooalign{%
+			\hfil\hbox{$\bigcirc$}\hfil\crcr%
+			\hfil\hbox{#1}\hfil}}}
+%
+\setlength{\textwidth}{\fullwidth}
+\setlength{\textheight}{40\baselineskip}
+\addtolength{\textheight}{\topskip}
+\setlength{\voffset}{-0.55in}
+%
+\end{comment}
+\lstset{
+	%プログラム言語(複数の言語に対応，C,C++も可)
+	language = Python,
+	%背景色と透過度
+	backgroundcolor={\color[gray]{.90}},
+	%枠外に行った時の自動改行
+	breaklines = true,
+	%自動改行後のインデント量(デフォルトでは20[pt])	
+	breakindent = 10pt,
+	%標準の書体
+	basicstyle = \ttfamily\scriptsize,
+	%コメントの書体
+	commentstyle = {\itshape \color[cmyk]{1,0.4,1,0}},
+	%関数名等の色の設定
+	classoffset = 0,
+	%キーワード(int, ifなど)の書体
+	keywordstyle = {\bfseries \color[cmyk]{0,1,0,0}},
+	%表示する文字の書体
+	stringstyle = {\ttfamily \color[rgb]{0,0,1}},
+	%枠 "t"は上に線を記載, "T"は上に二重線を記載
+	%他オプション：leftline，topline，bottomline，lines，single，shadowbox
+	frame = TBrl,
+	%frameまでの間隔(行番号とプログラムの間)
+	framesep = 5pt,
+	%行番号の位置
+	numbers = left,
+	%行番号の間隔
+	stepnumber = 1,
+	%行番号の書体
+	numberstyle = \tiny,
+	%タブの大きさ
+	tabsize = 4,
+	%キャプションの場所("tb"ならば上下両方に記載)
+	captionpos = t
+}
+\begin{comment}
 \lstset{
 	%プログラム言語(複数の言語に対応，C,C++も可)
 	language = Java,
@@ -52,6 +152,7 @@
 	%キャプションの場所("tb"ならば上下両方に記載)
 	captionpos = none
 }
+\end{comment}
 
 \renewcommand{\lstlistingname}{}
 
@@ -106,7 +207,7 @@
 	\begin{minipage}[b]{0.45\linewidth}
 		\centering
 		\includegraphics[keepaspectratio, scale=0.13]{figs/jpg/udrpzwh.jpg}
-		\caption{Raspberry Pi Zero WH}
+		\caption{Raspberry Pi Zero2 W / Zero W}
 	\end{minipage}
 	\hspace{1.0cm}
 	\begin{minipage}[b]{0.45\linewidth}
@@ -140,7 +241,7 @@
 \subsection{リモート処理の概要}
 
 %\begin{itemize}
-	Raspberrin Pi Zero WH 上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
+	Raspberrin Pi Zero2 W/Zero W  上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
 	
 	I2Cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取られる
 	
@@ -243,7 +344,7 @@ if __name__  ==  "__main__":
 	\begin{minipage}[b]{1.0\linewidth}
 		\centering
 		\includegraphics[keepaspectratio, scale=0.12]{figs/jpg/udrp4b_front.jpg}
-		\caption{Raspberry Pi 3, 4 or 5}
+		\caption{Raspberry Pi 3/4/5}
 		%	\end{minipage}
 	%	\hspace{1.0cm}
 	%	\begin{minipage}[b]{0.45\linewidth}
@@ -295,7 +396,7 @@ cronの仕組みを使う（3つの時刻指定の処理を登録している）
 
 \subsection{リモートセンサの処理をローカルマシンから起動する}
 
-リモート（192.168.3.27）のRaspberry Pi Zero WH に接続されている臭気センサの値を読みとるshell（sensor.sh）を、ローカル（192.168.3.21）のマシンRaspberry Pi からssh を使って起動するための shell（rsensor.sh）であり、cronによって5分ごとに起動される
+リモート（192.168.3.27）のRaspberry Pi Zero W に接続されている臭気センサの値を読みとるshell（sensor.sh）を、ローカル（192.168.3.21）のマシンRaspberry Pi からssh を使って起動するための shell（rsensor.sh）であり、cronによって5分ごとに起動される
 
 この時sshから、リモートマシン（Pi Zero）のユーザ（今の環境ではmat）のパスワードを要求されるが、人手によるインタラクティブな入力操作を想定していないので、予めsshpassを導入しておいて、それによってパスワードを自動応答させる様にしている
 
@@ -931,6 +1032,49 @@ deactivate
 
 \newpage
 
+\section{GCS(google-cloud-storage)}
+
+ローカルマシンのdataフォルダ以下のファイルを、クラウドへ退避させることを考える
+
+\begin{enumerate}
+
+\item 予め Google Cloud の Cloud Console（WebUI） で新規に、プロジェクトとバケットを用意しておく必要がある
+
+%\includegraphics[keepaspectratio, scale=0.3]{figs/png/cloud1.png}
+
+\includegraphics[keepaspectratio, scale=0.26]{figs/png/cloud2.png}
+
+\item プログラムからアクセスを試みると、アクセス権が無いという類のエラーに見舞われるので、Google Cloud CLI をインストール\footnote{\url{https://cloud.google.com/sdk/docs/install?hl=ja}}した後（ここ\footnote{\url{https://stackoverflow.com/questions/49302859/gsutil-serviceexception-401-anonymous-caller-does-not-have-storage-objects-list}}で議論されていることに従って）コマンドコンソールから次を行う（Yesを応答していく）
+\begin{verbatim}
+	gcloud auth login
+	gcloud auth application-default login
+\end{verbatim}
+
+プログラムで必要になるプロジェクト名は、WebUI上で作成した時の名前ではなく、application-default login の際、最後に表示されるものを使う必要がある
+
+\item Pythonの仮想環境に、次を導入しておく
+\begin{verbatim}
+	pip install google-cloud-storage
+	pip install gcsfs
+（以下は必要に応じて）
+	pip install pillow
+	pip install openpyxl
+\end{verbatim}
+
+\item GCS(google-cloud-storage)のPythonAPIは、以下のラッパークラス\footnote{	\url{https://qiita.com/Hyperion13fleet/items/594c15ac24f149ab73c9}
+}を継承して利用させて頂くことにする（ありがたや）
+
+\end{enumerate}
+
+%\newpage
+
+\lstinputlisting[caption = GCSWrapper（gcloud.py）, label = prog1]{src/local/gcloud.py}
+
+\lstinputlisting[caption = mycloud.py, label = prog2]{src/local/mycloud.py}
+
+
+\newpage
+
 \section{新たなシステムへの移行手順}
 
 \subsection{ローカルマシンの移行}
@@ -1039,8 +1183,6 @@ deactivate
 	\item /home/mat/Documents/sensor.sh を実行して、現在日時とセンサの電圧、それぞれ適切な値が１行で出力される事を確認する
 \end{enumerate}
 
-%\newpage
-
 \section{参考文献}
 
 \begin{itemize}
@@ -1056,6 +1198,13 @@ deactivate
 	寺田学 他著、翔泳社「Pythonによるあたらしいデータ分析の教科書」第2版、p.50
 	\item 「source」コマンドと「.」コマンド\\
 	（\url{https://atmarkit.itmedia.co.jp/ait/articles/1712/21/news015.html}）
+	\item Google Cloud Console -> Cloud Storage\\
+	（\url{https://console.cloud.google.com/welcome/new?hl=ja}）
+	\item Wrapper class for Python API of Google Cloud Storage\\
+	（\url{https://qiita.com/Hyperion13fleet/items/594c15ac24f149ab73c9}）
+	\item Google Cloud CLI\\
+	（\url{https://cloud.google.com/sdk/docs/install?hl=ja}）\\
+	（\url{https://stackoverflow.com/questions/49302859/gsutil-serviceexception-401-anonymous-caller-does-not-have-storage-objects-list}）
 \end{itemize}
 
 \end{document}          
