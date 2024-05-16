@@ -7,13 +7,22 @@ from datetime import timedelta
 import sys, time
 
 class RTPlot:
-    def dateproc(self):
+    def dt2str(self, dat, sformat):
+        return dat.strftime(sformat)
+
+    def str2dt(self, str, sformat):
+        return dt.strptime(str, sformat)
+
+    def dateproc(self, datestr):
         #s_format = '%Y-%m-%d, %H:%M:%S'
         s_format0 = '%Y-%m-%d, 00:00:00'
-        today = dt.now()
-        tomor = today + timedelta(days=1)
-        self.todaystr = today.strftime(s_format0)
-        self.tomorstr = tomor.strftime(s_format0)
+        self.today = dt.now()
+        self.todaystr = self.dt2str(self.today, s_format0)
+        if datestr != 'w' and datestr != self.todaystr[:10]:
+            self.today = self.str2dt(datestr, '%Y-%m-%d')
+            self.todaystr = self.dt2str(self.today, s_format0)
+        self.tomorrow = self.today + timedelta(days=1)
+        self.tomorstr = self.dt2str(self.tomorrow, s_format0)
 
     def readdata(self, fname):
         try:
@@ -23,13 +32,13 @@ class RTPlot:
         except FileNotFoundError:
             print(f'File{fname} not found')
 
-    def __init__(self, fname):
-        self.fname = fname
+    def __init__(self, datestr, fpath):
+        self.fname = fpath + datestr + '.txt' 
         self.x = []
         self.y = []
         self.ims = []
-        self.dateproc()
-        self.readdata(fname)
+        self.dateproc(datestr)
+        self.readdata(self.fname)
         matplotlib.style.use('ggplot')
         self.fig, self.ax = plt.subplots()
         locator = mdates.AutoDateLocator()
@@ -100,17 +109,18 @@ class RTPlot:
     
 if __name__=="__main__":
     dirstr = '/home/mat/Documents'
-    fname = dirstr + '/w.txt'
+    datestr = 'w'
+    fpath = dirstr + '/'
     if len(sys.argv) > 1:
-        fname = dirstr + '/' + sys.argv[1]
-    rtp = RTPlot(fname)
-    tomorrow = dt.strptime(rtp.tomorstr, '%Y-%m-%d, 00:00:00')
-    while dt.now() < tomorrow:
+        datestr = sys.argv[1]
+        fpath = dirstr + '/data/'
+    rtp = RTPlot(datestr, fpath)
+    while dt.now() < rtp.tomorrow:
         plt.pause(1)
         line = rtp.tail_f()
         if line is not None:
             print("[info.log]", line)
             rtp.chop(line)
             rtp.update()
-    rtp.fig.savefig(dirstr+'/figs/R_'+rtp.todaystr[:10]+'.png')
+    rtp.fig.savefig(dirstr + '/figs/R_' + rtp.todaystr[:10] + '.png')
 
