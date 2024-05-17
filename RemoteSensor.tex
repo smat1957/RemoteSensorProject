@@ -1071,8 +1071,15 @@ deactivate
 
 \lstinputlisting[caption = GCSWrapper（gcloud.py）, label = prog1]{src/local/gcloud.py}
 
-\lstinputlisting[caption = mycloud.py, label = prog2]{src/local/mycloud.py}
+以下は、GCSの操作\footnote{https://cloud.google.com/storage/docs/samples/?hl=ja}を試行したもの
+\begin{itemize}
+	\item テキストファイルのアップロードとダウンロード
+	\item pandasのデータフレームのアップロードとダウンロード
+	\item CSVファイルのアップロードとダウンロード
+	\item GCS上のファイルの削除とファイル一覧の取得
+\end{itemize}
 
+\lstinputlisting[caption = mycloud.py, label = prog2]{src/local/mycloud.py}
 
 \newpage
 
@@ -1206,6 +1213,8 @@ deactivate
 	\item Google Cloud CLI\\
 	（\url{https://cloud.google.com/sdk/docs/install?hl=ja}）\\
 	（\url{https://stackoverflow.com/questions/49302859/gsutil-serviceexception-401-anonymous-caller-does-not-have-storage-objects-list}）
+	\item Code samples with GCS API\\
+	（\url{https://cloud.google.com/storage/docs/samples/?hl=ja}）
 \end{itemize}
 
 \end{document}          
