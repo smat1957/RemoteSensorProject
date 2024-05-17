@@ -877,25 +877,50 @@ dates=$(date +%Y-%m-%d)
 hour=$(date +%H)
 minu=$(date +%M)
 if [ ${hour} -ge 23 ]; then
-  if [ ${minu} -gt 55 ]; then
+  if [ ${minu} -gt 58 ]; then
     cp ${dir}/w.txt ${dir}/bkup.txt
     mv ${dir}/w.txt ${dir}/data/${dates}.txt
     touch ${dir}/w.txt
+    python3 ${dir}/upload0.py ${dates}
   fi
 fi
 	\end{verbatim}
 \end{itembox}
 
-\newpage
+upload0.py は、google-cloud-storageへの、その日のデータのアップロード（詳細は後述）
 
-crontab では、5分ごとの処理を（ローカルマシンの処理時刻とずらすため）、3,8,13,18,... の5分おきに実行される様にした
+%\lstinputlisting[caption = upload.py, label = prog3]{src/remote/upload.py}
+\begin{itembox}[l]{/home/mat/Documents/upload0.py}
+	\begin{verbatim}
+from datetime import datetime as dt
+import sys
+from gcloud import GCSWrapper
+
+class cloud(GCSWrapper):
+  def __init__(self, proj_name, bkt_name):
+    super().__init__(proj_name, bkt_name)
+
+if __name__ == '__main__':
+  project_id = "myprojectid"
+  bucket_name = "mybucketname"
+  CL = cloud(project_id, bucket_name)
+  dirstr = '/home/mat/Documents'
+  path = dirstr + '/data/'
+  datestr = dt.now().strftime('%Y-%m-%d')
+  if len(sys.argv) > 1:
+    datestr = sys.argv[1]
+  CL.upload_file(path+datestr+'.txt', 'data/'+datestr+'.txt')		
+	\end{verbatim}	
+\end{itembox}
+
+crontab では、5分ごとの処理を（ローカルマシンの処理時刻とずらすため）、2,7,12,17,... の5分おきに実行される様にした
 
 \begin{itembox}[l]{crontab -e}
 \begin{verbatim}
 MAILTO=""
 # m h  dom mon dow   command
-3-58/5 * * * * sh /home/mat/Documents/proc.sh
-56 23 * * * sh /home/mat/Documents/procdaily.sh
+2-57/5 * * * * sh /home/mat/Documents/proc.sh
+58 23 * * * sh /home/mat/Documents/procdaily.sh
 \end{verbatim}	
 \end{itembox}
 
@@ -1001,17 +1026,53 @@ deactivate
 		match=$(echo ${LINE} | awk "/^${TODAY}/")
 		if [ -n "${match}" ]; then
 	\end{verbatim}
-	\item 変数TODAYの様に、dateの様な「コマンドを納めている変数」の場合、変数がダブルクゥオートで挟まれた記述"\$\{TODAY\}"に出会ったタイミングで、その中のコマンドが実行され、実行結果として得られた文字列が使える様になる
+	\item 実験してみた
+	%変数TODAYの様に、dateの様な「コマンドを納めている変数」の場合、変数がダブルクゥオートで挟まれた記述"\$\{TODAY\}"に出会ったタイミングで、その中のコマンドが実行され、実行結果として得られた文字列が使える様になる
 	
-	ダブルクゥオートで挟むことは「中のコマンドを実行して評価して下さい」の意味であり、仮に
-	変数をダブルクゥオートで挟まなかったら、例えば\$\{TODAY\}あるいは\$TODAYなどと書いたなら、その変数の中のコマンド文字列は実行可能なコマンドとは認識されず、アクサングラーブでコマンド文字列を挟んでいたとしても、シングルクゥオートで挟んでいた場合と同様、単なる文字列として扱われる
+	%ダブルクゥオートで挟むことは「中のコマンドを実行して評価して下さい」の意味であり、仮に変数をダブルクゥオートで挟まなかったら、例えば\$\{TODAY\}あるいは\$TODAYなどと書いたなら、その変数の中のコマンド文字列は実行可能なコマンドとは認識されず、アクサングラーブでコマンド文字列を挟んでいたとしても、シングルクゥオートで挟んでいた場合と同様、単なる文字列として扱われる
+	
+	\begin{verbatim}
+		#!/usr/bin/sh
+		dates=$(date +%Y-%m-%d)
+		datex=`date +%Y-%m-%d`
+		datey="date +%Y-%m-%d"
+		datez='date +%Y-%m-%d'
+		echo "${dates}"
+		echo "${datex}"
+		echo "${datey}"
+		echo "${datez}"
+		echo ${dates}
+		echo ${datex}
+		echo ${datey}
+		echo ${datez}
+		echo $dates
+		echo $datex
+		echo $datey
+		echo $datez
+	\end{verbatim}
+	このshellの実行結果は次の通り
+	\begin{verbatim}
+		2024-05-17
+		2024-05-17
+		date +%Y-%m-%d
+		date +%Y-%m-%d
+		2024-05-17
+		2024-05-17
+		date +%Y-%m-%d
+		date +%Y-%m-%d
+		2024-05-17
+		2024-05-17
+		date +%Y-%m-%d
+		date +%Y-%m-%d
+	\end{verbatim}
+
 	\item if文の -n は、"\$\{match\}"が「空でないならば」の意味（「空ならば」は、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくるので空ではない
 	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませている
 	\begin{verbatim}
 		CMD=test\ -e\ ${DIR}/data/${LINE}.txt
 		RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
 	\end{verbatim}
-	\item 「test -e <file\_path>」は、「test -f <file\_path>」でも動くかもしれない
+	\item 「test -e <file\_path>」は、「test -f <file\_path>」でも動くかもしれない\\
 	\item if文の [ -s <file\_path> ] は、ファイルが存在し、なおかつ中身がある場合に True 、ファイルの中身が空 又は ファイルが存在しない場合には False が返る 
 	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している\\もし、ファイル（FILE\_NAME）を介して渡すのであれば、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
 	\item while ループの中で ssh（や rsh）を実行すると、読み込むファイルが複数行あっても、1行目しか処理されないという現象に遭遇する.
@@ -1053,6 +1114,11 @@ deactivate
 
 プログラムで必要になるプロジェクト名は、WebUI上で作成した時の名前ではなく、application-default login の際、最後に表示されるものを使う必要がある
 
+\item ユーザ認証情報とサービス アカウント認証情報を上の手続きで提供できたなら、以下の場所に必要な情報が保存されているので、他のマシンでgoogle-cloud-storage のAPIを使用したプログラムを動かしたい場合、〜/.config/gcloudのフォルダごと同じ場所にコピーすれば、容易に実行させることができる
+\begin{verbatim}
+	~/.config/gcloud/application_default_credentials.json
+\end{verbatim}
+
 \item Pythonの仮想環境に、次を導入しておく
 \begin{verbatim}
 	pip install google-cloud-storage
@@ -1067,9 +1133,9 @@ deactivate
 
 \end{enumerate}
 
-%\newpage
-
 \lstinputlisting[caption = GCSWrapper（gcloud.py）, label = prog1]{src/local/gcloud.py}
+
+このラッパークラスは、リモートマシンの日毎のデータをGCSにアップロードする際にも使っている
 
 以下は、GCSの操作\footnote{https://cloud.google.com/storage/docs/samples/?hl=ja}を試行したもの
 \begin{itemize}
@@ -1078,6 +1144,9 @@ deactivate
 	\item CSVファイルのアップロードとダウンロード
 	\item GCS上のファイルの削除とファイル一覧の取得
 \end{itemize}
+なお、例えば data/ という名前のblobをアップロードするとフォルダができる
+
+\newpage
 
 \lstinputlisting[caption = mycloud.py, label = prog2]{src/local/mycloud.py}
 
