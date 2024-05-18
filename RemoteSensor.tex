@@ -1176,7 +1176,7 @@ jsonファイルを読み書きするPythonのプログラムは次の通り
 		
 		#JSON ファイルの読み込み
 		with open('application_default_credentials.json', 'r') as f:
-		json_dict = json.load(f)
+		   json_dict = json.load(f)
 		print('json_dict:{}'.format(type(json_dict)))
 		print(f'json_dict:\n{json_dict}')
 		
@@ -1193,9 +1193,9 @@ jsonファイルを読み書きするPythonのプログラムは次の通り
 		
 		#JSON データの書き込み
 		with open('test2.json', 'w') as f2:
-		json.dump(json_dict2, f2)
-		with open('test2.json','r') as f3:
-		f3_dict = json.load(f3)
+		   json.dump(json_dict2, f2)
+		with open('test2.json', 'r') as f3:
+		   f3_dict = json.load(f3)
 		print(f'f3_dict:\n{f3_dict}')
 	\end{verbatim}
 \end{itembox}
