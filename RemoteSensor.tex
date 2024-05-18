@@ -877,7 +877,7 @@ dates=$(date +%Y-%m-%d)
 hour=$(date +%H)
 minu=$(date +%M)
 if [ ${hour} -ge 23 ]; then
-  if [ ${minu} -gt 58 ]; then
+  if [ ${minu} -gt 57 ]; then
     cp ${dir}/w.txt ${dir}/bkup.txt
     mv ${dir}/w.txt ${dir}/data/${dates}.txt
     touch ${dir}/w.txt
@@ -1026,45 +1026,70 @@ deactivate
 		match=$(echo ${LINE} | awk "/^${TODAY}/")
 		if [ -n "${match}" ]; then
 	\end{verbatim}
-	\item 実験してみた
+
 	%変数TODAYの様に、dateの様な「コマンドを納めている変数」の場合、変数がダブルクゥオートで挟まれた記述"\$\{TODAY\}"に出会ったタイミングで、その中のコマンドが実行され、実行結果として得られた文字列が使える様になる
 	
 	%ダブルクゥオートで挟むことは「中のコマンドを実行して評価して下さい」の意味であり、仮に変数をダブルクゥオートで挟まなかったら、例えば\$\{TODAY\}あるいは\$TODAYなどと書いたなら、その変数の中のコマンド文字列は実行可能なコマンドとは認識されず、アクサングラーブでコマンド文字列を挟んでいたとしても、シングルクゥオートで挟んでいた場合と同様、単なる文字列として扱われる
-	
+	\begin{figure}[htbp]
+		\begin{minipage}[b]{0.45\linewidth}
+			\centering
 	\begin{verbatim}
-		#!/usr/bin/sh
-		dates=$(date +%Y-%m-%d)
-		datex=`date +%Y-%m-%d`
-		datey="date +%Y-%m-%d"
-		datez='date +%Y-%m-%d'
-		echo "${dates}"
-		echo "${datex}"
-		echo "${datey}"
-		echo "${datez}"
-		echo ${dates}
-		echo ${datex}
-		echo ${datey}
-		echo ${datez}
-		echo $dates
-		echo $datex
-		echo $datey
-		echo $datez
-	\end{verbatim}
-	このshellの実行結果は次の通り
+	#!/usr/bin/sh
+	dates=$(date +%Y-%m-%d)
+	datex=`date +%Y-%m-%d`
+	datey="date +%Y-%m-%d"
+	datez='date +%Y-%m-%d'
+	echo "${dates}"
+	echo "${datex}"
+	echo "${datey}"
+	echo "${datez}"
+	echo ${dates}
+	echo ${datex}
+	echo ${datey}
+	echo ${datez}
+	echo $dates
+	echo $datex
+	echo $datey
+	echo $datez
+	echo '${dates}'
+	echo '${datex}'
+	echo '${datey}'
+	echo '${datez}'
+	echo `${dates}`
+	echo `${datex}`
+	echo `${datey}`
+	echo `${datez}`
+\end{verbatim}			
+			\caption{実験：test.sh}
+		\end{minipage}
+		\hspace{1.0cm}
+		\begin{minipage}[b]{0.45\linewidth}
+		\centering
 	\begin{verbatim}
-		2024-05-17
-		2024-05-17
-		date +%Y-%m-%d
-		date +%Y-%m-%d
-		2024-05-17
-		2024-05-17
-		date +%Y-%m-%d
-		date +%Y-%m-%d
-		2024-05-17
-		2024-05-17
-		date +%Y-%m-%d
-		date +%Y-%m-%d
-	\end{verbatim}
+2024-05-18
+2024-05-18
+date +%Y-%m-%d
+date +%Y-%m-%d
+2024-05-18
+2024-05-18
+date +%Y-%m-%d
+date +%Y-%m-%d
+2024-05-18
+2024-05-18
+date +%Y-%m-%d
+date +%Y-%m-%d
+${dates}
+${datex}
+${datey}
+${datez}
+test.sh: 1: 2024-05-18: not found
+test.sh: 1: 2024-05-18: not found
+2024-05-18
+2024-05-18
+\end{verbatim}		
+		\caption{test.shの実行結果}
+		\end{minipage}
+	\end{figure}
 
 	\item if文の -n は、"\$\{match\}"が「空でないならば」の意味（「空ならば」は、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくるので空ではない
 	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませている
@@ -1085,7 +1110,7 @@ deactivate
 	
 	一方、bashによってshellを起動する場合（あるいは、shellスクリプト名の指定で直接起動する場合）は、現在のshell環境とは異なる環境下（異なるshell変数や環境変数）の別プロセスとして実行することになる.
 	
-	%shell変数は現在実行中のshellでのみ有効な変数、環境変数は実行されたプログラム（子プロセス）に引き継がれる変数. どちらもshellで使用可能. exportコマンドを使うと、shell変数を環境変数に変換できる
+	（shell変数は現在実行中のshellでのみ有効な変数、環境変数は実行されたプログラム（子プロセス）に引き継がれる変数. どちらもshellで使用可能. exportコマンドを使うと、shell変数を環境変数に変換できる）
 	
 	\item bashでは、「source ファイル名」と全く同じ処理を「. ファイル名」によって実行できるが、bashの基になっているshでは、「.」コマンドしか利用できず「source」コマンドは使用できない.
 	
@@ -1112,11 +1137,22 @@ deactivate
 	gcloud auth application-default login
 \end{verbatim}
 
-プログラムで必要になるプロジェクト名は、WebUI上で作成した時の名前ではなく、application-default login の際、最後に表示されるものを使う必要がある
+プログラムで必要になるプロジェクト名は、WebUI上で作成した時の名前ではなく、application-default login の際、最後にコンソール上に表示されるものを使う必要がある
 
 \item ユーザ認証情報とサービス アカウント認証情報を上の手続きで提供できたなら、以下のjsonファイルに必要な情報が保存されているので、他のマシンでgoogle-cloud-storage のAPIを使用したプログラムを動かしたい場合、このjsonファイルを同じ場所にコピーして運用することができる
 \begin{verbatim}
 	~/.config/gcloud/application_default_credentials.json
+\end{verbatim}
+
+\footnotetext[7]{\url{https://qiita.com/Hyperion13fleet/items/594c15ac24f149ab73c9}\label{fot:fn7}}
+もし、勝手な場所に保存したいなら、次の方法\footnotemark[7]もある様だ
+\begin{verbatim}
+	from google.cloud import storage as gcs
+	from google.oauth2 import service_account
+	key_path = '{クレデンシャルを格納しているPath}'
+	credential = service_account.Credentials.from_service_account_file(key_path)
+	project_id = "{ProjectName}"
+	client = gcs.Client(project_id, credentials=credential)
 \end{verbatim}
 
 \item Pythonの仮想環境に、次を導入しておく
@@ -1128,16 +1164,17 @@ deactivate
 	pip install openpyxl
 \end{verbatim}
 
-\item GCS(google-cloud-storage)のPythonAPIは、以下のラッパークラス\footnote{	\url{https://qiita.com/Hyperion13fleet/items/594c15ac24f149ab73c9}
-}を継承して利用させて頂くことにする（ありがたや）
+\item GCS(google-cloud-storage)のPythonAPIは、以下のラッパークラス\footnotemark[7]を継承して利用させて頂くことにする（ありがたや）
+
+\setcounter{footnote}{7}
 
 \end{enumerate}
 
 \lstinputlisting[caption = GCSWrapper（gcloud.py）, label = prog1]{src/local/gcloud.py}
 
-このラッパークラスは、リモートマシンの日毎のデータをGCSにアップロードする際にも使っている
+このラッパークラスは、リモートマシンの日毎のデータをGCSにアップロードする際にも使っていた
 
-以下は、GCSの操作\footnote{https://cloud.google.com/storage/docs/samples/?hl=ja}を試行したもの
+以下は、GCSの操作\footnote{https://cloud.google.com/storage/docs/samples/?hl=ja}を試行したもの. 試しているのは、
 \begin{itemize}
 	\item テキストファイルのアップロードとダウンロード
 	\item pandasのデータフレームのアップロードとダウンロード
