@@ -1,3 +1,6 @@
+from datetime import datetime as dt
+from datetime import timedelta
+import sys
 import pandas as pd
 from gcloud import GCSWrapper
 
@@ -42,20 +45,43 @@ class cloud(GCSWrapper):
         self.df = pd.DataFrame({"mdate": self.x, "value": self.y})
         return self.df
 
+    def num2datestr(self, num):
+        return num.strftime('%Y-%m-%d, %H:%M:%S')
+ 
+    def df2txt(self):
+        ser0 = self.df.loc[:, 'mdate']
+        ser1 = self.df.loc[:, 'value']
+        return ser0, ser1
+    
+    def download_as_string(self, gcs_path):
+        blob = self._bucket.blob(gcs_path)
+        text = blob.download_as_string().decode()
+        return text
+
 if __name__ == '__main__':
     project_id = "myprojectid"
     bucket_name = "mybucketname"
     CL = cloud(project_id, bucket_name)
-    CL.show_file_names()
+    #CL.show_file_names()
     dirstr = '/home/mat/Documents'
     path = dirstr + '/data/'
-    datestr = '2024-05-10'
-    CL.upload_file(path+datestr+'.txt', 'data/'+datestr+'.txt')
-    CL.download_file(dirstr+'/'+datestr+'.txt', 'data/'+datestr+'.txt')
-    df = CL.txt2df(dirstr+'/'+datestr+'.txt')
-    df.to_csv('gs://'+bucket_name+'/data/'+datestr+'.csv', index=False)
-    CL.show_file_names()
-    data_df = pd.read_csv('gs://'+bucket_name+'/data/'+datestr+'.csv')
-    print(data_df)
-    CL.delete_blob('data/'+datestr+'.csv')
-    CL.show_file_names()
+    s_format = '%Y-%m-%d'
+    datestr = dt.now().strftime(s_format)
+    if len(sys.argv) == 3 and sys.argv[1]=='-w':
+        today = dt.strptime(sys.argv[2], s_format)
+        datestr = (today - timedelta(days=7)).strftime(s_format)
+        text = ""
+        for i in range(7):
+            day = today - timedelta(days=(7-i))
+            datestr = day.strftime(s_format)
+            try:
+                temp = CL.download_as_string('data/'+datestr+'.txt')
+            except FileNotFoundError:
+                continue
+            text += temp   
+    else:
+        datestr = sys.argv[1]
+        text = CL.download_as_string('data/'+datestr+'.txt')
+    for dstr in text.split('\n'):
+        if len(dstr)>0:
+            print(dstr[:20], '\t', dstr[25:].strip())
