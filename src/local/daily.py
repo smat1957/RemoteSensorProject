@@ -20,6 +20,7 @@ if argv==2:
             value = float(line[25:].strip())
             list0.append([datev, value])
 else:
+    today = ''
     while True:
         try:
             line = input()

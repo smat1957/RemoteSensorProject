@@ -29,6 +29,7 @@ if sys.argv==2:
         except FileNotFoundError:
             continue
 else:
+    startstr = ''
     while True:
         try:
             line = input()

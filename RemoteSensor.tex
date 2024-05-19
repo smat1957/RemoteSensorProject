@@ -1082,21 +1082,20 @@ crontab では、proc.sh を 2,7,12,17,... の5分おきに実行する様にし
 	\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
-echo 'Enter date string : YYYY-mm-dd'
-read dates
+if [ $# -eq 1 ]; then
+dates=$1
 . ${dir}/venv11/bin/activate
    python3 ${dir}/mycloud.py ${dates} | python3 ${dir}/daily.py
-deactivate	\end{verbatim}
+deactivate
+fi
+	\end{verbatim}
 \end{itembox}
 
-次の様に動作させる（入力が促されるので、日付を入力する）
+次の様に動作させる（日付を第1引数に指定する）
 
 \begin{screen}
 \begin{verbatim}
-	(venv11) mat$raspberrypi: ~/Documents $ sh daily0.sh
-	Enter date string : YYYY-mm_dd
-	2024-05-18
-	(venv11) mat$raspberrypi: ~/Documents $
+	(venv11) mat$raspberrypi: ~/Documents $ sh ./daily0.sh 2024-05-18
 \end{verbatim}
 \end{screen}
 
@@ -1172,6 +1171,7 @@ if __name__ == '__main__':
 			      value = float(line[25:].strip())
 			      list0.append([datev, value])
 			else:
+			   today = ''
 			   while True:
 			      try:
 			         line = input()
@@ -1200,25 +1200,24 @@ if __name__ == '__main__':
 
 \begin{itembox}[l]{/home/mat/Documents/weekly0.sh}
 	\begin{verbatim}
-		#!/usr/bin/sh
-		dir='/home/mat/Documents'
-		echo 'Enter last date string : YYYY-mm-dd'
-		read dates
-		. ${dir}/venv11/bin/activate
-		   python3 ${dir}/mycloud.py -w ${dates} | python3 ${dir}/weekly.py
-		deactivate	\end{verbatim}
+#!/usr/bin/sh
+dir='/home/mat/Documents'
+if [ $# -eq 1 ]; then
+dates=$1
+. ${dir}/venv11/bin/activate
+   python3 ${dir}/mycloud.py -w ${dates} | python3 ${dir}/weekly.py
+deactivate
+fi
+	\end{verbatim}
 \end{itembox}
 
 mycloud.py では、-w のスイッチを指定することによって、1週間分のファイルをクラウドから読み込むことを指示している（ソースプログラムは日毎の処理で使ったものと同じ）
 
-次の様に動作させる（入力が促されるので、1週間の最後の日付を入力する）
+次の様に動作させる（1週間の最後の日付を第1引数に指定する）
 
 \begin{screen}
 	\begin{verbatim}
-		(venv11) mat$raspberrypi: ~/Documents $ sh weekly0.sh
-		Enter last date string : YYYY-mm_dd
-		2024-05-18
-		(venv11) mat$raspberrypi: ~/Documents $
+		(venv11) mat$raspberrypi: ~/Documents $ sh ./weekly0.sh 2024-05-18
 	\end{verbatim}
 \end{screen}
 
@@ -1252,6 +1251,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			      except FileNotFoundError:
 			         continue
 			else:
+			   startstr = ''
 			   while True:
 			      try:
 			         line = input()
