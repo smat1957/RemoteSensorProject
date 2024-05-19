@@ -201,6 +201,27 @@
 
 \chapter{ローカルにデータを保持する}
 
+\begin{table}[h]
+	\centering
+	\caption{ここで使用するshellとプログラム}
+	\label{tab:local}
+	\begin{tabular}{llp{8.5cm}}
+		\hline
+		リモート & sensor.sh & 日付文字列とセンサーの読み取り値を並べて出力するshell \\
+		リモート & adrsz0D.py & センサーを読むクラスの定義 \\
+		リモート & procmain.py & センサーのインスタンス生成とセンサーの読取り \\
+		ローカル & rsensor.sh & 5分間隔でcronに呼び出される. リモートの sensor.sh を起動して、結果をローカルの w.txt に追記蓄積する \\
+		ローカル & daily.sh & 23時56分にcronにより起動される. 1日の蓄積データ w.txt のdata/フォルダへの退避とdaily.pyの起動\\
+		ローカル & daily.py & data/フォルダ内の指定した日付の1日分のデータを読んでグラフを作図する \\
+		ローカル & weekly.sh & 毎週日曜日の0時1分にcronにより起動される. weekly.pyを起動する \\
+		ローカル & weekly.py & data/フォルダ内の指定日より前の1週間分のデータを読んでグラフを作図する \\
+		ローカル & rtplot.sh & rtplot.py を起動する. デスクトップに置いてマウスクリックで起動させる \\
+		ローカル & rtplot.py & w.txt を監視して、更新される度に実時間グラフを更新表示する \\
+		ローカル & myplot.py & daily.py、weekly.py から共通に呼び出されるグラフ作図用の関数 \\  \hline
+	\end{tabular}
+\end{table}
+
+
 \section{リモートマシンの処理}
 
 \subsection{リモート機器、センサー}
@@ -612,7 +633,7 @@ fi
 	
 	graph\_plot()関数にlist0を渡してグラフの作図をさせている
 %\end{itemize}
-
+\begin{spacing}{0.87}
 \begin{itembox}[l]{/home/mat/Documents/weekly.py}
 	\begin{verbatim}
 from datetime import datetime as dt, timedelta
@@ -646,6 +667,7 @@ for fname in datelist:
 graph_plot(list0, dirstr, startstr, True)
 	\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 \newpage
 
@@ -681,6 +703,7 @@ graph_plot(list0, dirstr, startstr, True)
 	tail\_f()関数は、コマンド tail -f w.txt をPythonのプログラムで実現したもの（指定したファイルの最終行が追記されるまでcontinueで待っている）である
 %\end{itemize}
 
+\begin{spacing}{0.87}
 \begin{breakbox}%[l]{/home/mat/Documents/rtplot.py}
 	\begin{verbatim}
 import sys, time, numpy as np
@@ -805,6 +828,7 @@ if __name__ == "__main__":
   rtp.fig.savefig(dirstr + '/figs/R_' + rtp.todaystr[:10] + '.png')
 	\end{verbatim}
 \end{breakbox}
+\end{spacing}
 
 tail\_f()関数の中では、6分を超えてcontinueを繰り返している場合にNoneを返す事にしている（6分待てば、その間には必ず5分間隔のイベントは入ってくると思う）ので、mainの中の繰り返し処理whileの中でその事を（PEP8が可読性の観点から推奨している書き方） is not None によって判定している
 
@@ -853,6 +877,22 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 %\newpage
 
 \chapter{リモートにデータを保持する}
+
+\begin{table}[h]
+	\centering
+	\caption{ここで使用するshellとプログラム}
+	\label{tab:local}
+	\begin{tabular}{llp{8.5cm}}
+		\hline
+		リモート & sensor.sh{*} & 日付文字列とセンサーの読み取り値を並べて出力するshell \\
+		リモート & adrsz0D.py{*} & センサーを読むクラスの定義 \\
+		リモート & procmain.py{*} & センサーのインスタンス生成とセンサーの読取り \\
+		リモート & proc.sh & cron により5分間隔で起動される. sensor.sh を起動して w.txt に計測データを追記蓄積する \\
+		リモート & procdaily.sh & cron により毎日23時58分に起動される. 1日分の蓄積データ w.txt をdata/フォルダへ退避させる \\
+		ローカル & lackdata.py & data/フォルダ内に、本日の日付までで保存されていないデータがあったら、その日付の一覧を標準出力へ出力する \\
+		ローカル & lack.sh & lackdata.py が出力する日付をパイプを介した標準入力で受け、その日付のデータが、ローカルの w.txt、リモートの w.txt、リモートのdata/フォルダ内、ローカルのdata/フォルダ内にないか、すべて探し出してマージし、その日付のファイルとしてローカルのdata/フォルダに保存する  \\ \hline
+	\end{tabular}
+\end{table}
 
 \section{リモートマシンの処理}
 
@@ -984,6 +1024,28 @@ deactivate
 %\newpage
 
 \chapter{クラウド上にデータを保持する}
+
+\begin{table}[h]
+	\centering
+	\caption{ここで使用するshellとプログラム}
+	\label{tab:local}
+	\begin{tabular}{p{1.3cm}lp{8.5cm}}
+		\hline
+		リモート & sensor.sh{*} & 日付文字列とセンサーの読み取り値を並べて出力するshell \\
+		リモート & adrsz0D.py{*} & センサーを読むクラスの定義 \\
+		リモート & procmain.py{*} & センサーのインスタンス生成とセンサーの読取り \\
+		リモート & proc.sh{*} & cron により5分間隔で起動される. sensor.sh を起動して w.txt に計測データを追記蓄積する \\
+		リモート & procdaily.sh & cron により毎日23時58分に起動される. 1日分の蓄積データ w.txt をdata/フォルダへ退避させる. upload0.py を起動して本日分の計測データをクラウドにアップロードし、最後に昨日分の計測データを削除する（更新） \\
+		リモート & upload0.py & クラウドに指定日付のデータをアップロードする.  \\
+		ローカル & mycloud.py & 指定した日付のデータをクラウドから読んで標準出力に出力する. -w のスイッチを付けて起動した場合、指定日付から1週間前までのデータをクラウドから読んで標準出力へ出力する.   \\
+		ローカル & daily.py & 標準入力から受け取った計測データをもとに、1日の値の変化をグラフにする（更新） \\
+		ローカル & weekly.py & 標準入力から受け取った計測データをもとに、1週間の値の変化をグラフにする（更新） \\
+		ローカル & daily0.sh & mycloud.py から daily.py へパイプで繋いでいる \\
+		ローカル & weekly0.sh & mycloud.py から weekly.py へパイプで繋いでいる \\
+		ローカル & myplot.py{*} & グラフ作図関数. daily.pyとweekly.py から呼び出される \\
+		両方 & gcloud.py & GCSWapperクラス(upload0.pyとmycloud.pyで継承する) \\ \hline
+	\end{tabular}
+\end{table}
 
 \section{リモートマシンの処理}
 
@@ -1293,7 +1355,6 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 		TODAY=`date +%Y-%m-%d`
 		... ...
 		match=$(echo ${LINE} | awk "/^${TODAY}/")
-		if [ -n "${match}" ]; then
 	\end{verbatim}
 	
 	%変数TODAYの様に、dateの様な「コマンドを納めている変数」の場合、変数がダブルクゥオートで挟まれた記述"\$\{TODAY\}"に出会ったタイミングで、その中のコマンドが実行され、実行結果として得られた文字列が使える様になる
@@ -1398,7 +1459,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 	
 	%\includegraphics[keepaspectratio, scale=0.3]{figs/png/cloud1.png}
 	
-	\includegraphics[keepaspectratio, scale=0.26]{figs/png/cloud2.png}
+	\includegraphics[keepaspectratio, scale=0.24]{figs/png/cloud2.png}
 	
 	\item プログラムからアクセスを試みると、アクセス権が無いという類のエラーに見舞われるので、Google Cloud CLI をインストール\footnote{\url{https://cloud.google.com/sdk/docs/install?hl=ja}}した後（ここ\footnote{\url{https://stackoverflow.com/questions/49302859/gsutil-serviceexception-401-anonymous-caller-does-not-have-storage-objects-list}}で議論されていることに従って）コマンドコンソールから次を行う（Yesを応答していく）
 	\begin{verbatim}
@@ -1439,6 +1500,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 	プロジェクト名として指定するのに使うのは、"quota\_project\_id"：の後に示されている文字列になる
 	
 	jsonファイルを読み書きするPythonのプログラムは次の通り
+	\begin{spacing}{0.87}
 	\begin{itembox}[l]{myjson.py}
 		\begin{verbatim}
 			import json
@@ -1468,7 +1530,8 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			print(f'f3_dict:\n{f3_dict}')
 		\end{verbatim}
 	\end{itembox}
-	
+	\end{spacing}
+
 	\item Pythonの仮想環境に次を導入しておく
 	\begin{verbatim}
 		pip install google-cloud-storage
@@ -1501,7 +1564,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 
 \lstinputlisting[caption = check\_cloud.py, label = prog2]{src/local/check_cloud.py}
 
-\section{新たなシステムへの移行手順}
+\section{新たなシステムへの移行の手順}
 
 \subsection{ローカルマシンの移行}
 
