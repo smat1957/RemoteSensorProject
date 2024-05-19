@@ -250,7 +250,7 @@
 	\item 動作状況が見えるステータスLEDにより、駆動状況の確認が容易
 \end{itemize}
 
-\newpage
+%\newpage
 運用方針
 
 \begin{itemize}
@@ -669,7 +669,7 @@ graph_plot(list0, dirstr, startstr, True)
 \end{itembox}
 \end{spacing}
 
-\newpage
+%\newpage
 
 以下は、週毎処理が出力する画像である。4月21日（日曜日）の0時1分にcronによって起動され実行されたものだが、フォルダdataの中には、測定を始めた4月16日（火曜日）から、4月20日（土曜日）までの5日分のファイルがあるだけである。本来なら1週間前の日曜日（4月14日）のデータから週毎処理の対象となるところだが、プログラムの中ではFileNotFoundErrorの例外を捕捉して、とにかくcontinueによって処理を継続させているため、何事もなかったかの様に、データファイルの所在する火曜日以降がグラフに作図されている
 
@@ -829,6 +829,8 @@ if __name__ == "__main__":
 	\end{verbatim}
 \end{breakbox}
 \end{spacing}
+
+\newpage
 
 tail\_f()関数の中では、6分を超えてcontinueを繰り返している場合にNoneを返す事にしている（6分待てば、その間には必ず5分間隔のイベントは入ってくると思う）ので、mainの中の繰り返し処理whileの中でその事を（PEP8が可読性の観点から推奨している書き方） is not None によって判定している
 
@@ -1157,7 +1159,7 @@ fi
 
 \begin{screen}
 \begin{verbatim}
-	(venv11) mat$raspberrypi: ~/Documents $ sh ./daily0.sh 2024-05-18
+	(venv11) ~/Documents $ sh ./daily0.sh 2024-05-18
 \end{verbatim}
 \end{screen}
 
@@ -1279,7 +1281,7 @@ mycloud.py では、-w のスイッチを指定することによって、1週�
 
 \begin{screen}
 	\begin{verbatim}
-		(venv11) mat$raspberrypi: ~/Documents $ sh ./weekly0.sh 2024-05-18
+		(venv11) ~/Documents $ sh ./weekly0.sh 2024-05-18
 	\end{verbatim}
 \end{screen}
 
