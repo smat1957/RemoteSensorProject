@@ -11,12 +11,11 @@ if len(sys.argv) > 1:
     today = dt.strptime(sys.argv[1], s_format)
 startstr = (today - timedelta(days=7)).strftime(s_format)
 
-datelist = []
+datelist, list0 = [], []
 for i in range(7):
     day = today - timedelta(days=(7-i))
     datelist.append(day.strftime(s_format))
 
-list0=[]
 if sys.argv==2:
     for fname in datelist:
         try:
@@ -29,7 +28,6 @@ if sys.argv==2:
         except FileNotFoundError:
             continue
 else:
-    startstr = ''
     while True:
         try:
             line = input()
@@ -37,11 +35,13 @@ else:
                 temp = l.strip()
                 if len(temp)>0:
                     if i==0:
+                        startstr = temp[:10]
                         datev = mdates.datestr2num(temp)
                     else:
                         value = float(temp)
             list0.append([datev, value])
         except EOFError:
             break
-
-graph_plot(list0, dirstr, startstr, True)
+title = 'Smel Level : ' + startstr + ' (Weekly)'
+fig = graph_plot(list0, title)
+#fig.savefig(dirstr + '/figs/' + startstr + '.png')

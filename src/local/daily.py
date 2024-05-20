@@ -20,7 +20,6 @@ if argv==2:
             value = float(line[25:].strip())
             list0.append([datev, value])
 else:
-    today = ''
     while True:
         try:
             line = input()
@@ -28,11 +27,13 @@ else:
                 temp = l.strip()
                 if len(temp)>0:
                     if i==0:
+                        today = temp[:10]
                         datev = mdates.datestr2num(temp)
                     else:
                         value = float(temp)
             list0.append([datev, value])
         except EOFError:
             break
-        
-graph_plot(list0, dirstr, today, False)
+title = 'Smel Level : ' + today
+fig = graph_plot(list0, title)
+#fig.savefig(dirstr + '/figs/' + today + '.png')

@@ -523,7 +523,9 @@ with open(dirstr + "/data/" + today + ".txt") as f:
     value = float(line[25:].strip())
     list0.append([datev, value])
 
-graph_plot(list0, dirstr, today, False)
+title = 'Smel Level : ' + today
+fig = graph_plot(list0, title)
+#fig.savefig(dirstr + '/figs/' + today + '.png')
 	\end{verbatim}
 \end{itembox}
 
@@ -559,7 +561,7 @@ daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 		import numpy as np, pandas as pd
 		from matplotlib import pyplot as plt, style, dates as mdates
 		
-		def graph_plot(list0, dirstr, datestr, weekly=False):
+		def graph_plot(list0, titlestr):
 		　　df = pd.DataFrame(list0, columns=["DateVal", "Value"])
 		　　matplotlib.style.use('ggplot')
 		　　fig, ax = plt.subplots()
@@ -576,20 +578,14 @@ daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 		　　ax.set_ylim([ymin, ymax])
 		　　ax.set_xlabel('Date-Time')
 		　　ax.set_ylabel('Volt')
-		　　if weekly:
-		　　　　titlestr = "Smel Level : " + datestr + "(Weekly)"
-		　　　　figpath = dirstr + "/figs/" + "Weekly_" + datestr
-		　　else:
-		　　　　titlestr = "Smel Level : " + datestr
-		　　　　figpath = dirstr + "/figs/" + datestr
 		　　ax.set_title(titlestr)
 		　　ax.plot(x,y)
-		　　#fig.savefig(figpath + '.png')
-		　　plt.show()	
+		　　plt.show()
+		　　return fig
 	\end{verbatim}
 \end{itembox}
 
-グラフの図を自動的に保存する様にしたいなら、最後の fig.savefig(...) のコメントを外して有効にする
+%グラフの図を自動的に保存する様にしたいなら、最後の fig.savefig(...) のコメントを外して有効にする
 
 \newpage
 
@@ -664,7 +660,9 @@ for fname in datelist:
   except FileNotFoundError:
     continue
 
-graph_plot(list0, dirstr, startstr, True)
+title = 'Smel Level : ' + startstr + ' (Weekly)'
+fig = graph_plot(list0, title)
+#fig.savefig(dirstr + '/figs/' + startstr + '.png')
 	\end{verbatim}
 \end{itembox}
 \end{spacing}
@@ -1215,9 +1213,8 @@ if __name__ == '__main__':
 \begin{spacing}{0.87}
 	\begin{itembox}[l]{/home/mat/Documents/daily.py}
 		\begin{verbatim}
-			import sys
 			from datetime import datetime as dt
-			import matplotlib.dates as mdates
+			import sys, matplotlib.dates as mdates
 			from myplot import graph_plot
 			
 			dirstr = '/home/mat/Documents'
@@ -1235,7 +1232,6 @@ if __name__ == '__main__':
 			      value = float(line[25:].strip())
 			      list0.append([datev, value])
 			else:
-			   today = ''
 			   while True:
 			      try:
 			         line = input()
@@ -1243,14 +1239,17 @@ if __name__ == '__main__':
 			            temp = l.strip()
 			            if len(temp)>0:
 			               if i==0:
+			                  today = temp[:10]
 			                  datev = mdates.datestr2num(temp)
 			               else:
 			                  value = float(temp)
 			            list0.append([datev, value])
 			      except EOFError:
 			         break
-			
-			graph_plot(list0, dirstr, today, False)
+
+			title = 'Smel Level : ' + today
+			fig = graph_plot(list0, title)
+			#fig.savefig(dirstr + '/figs/' + today + '.png')
   	 	\end{verbatim}
 	\end{itembox}
 \end{spacing}
@@ -1287,7 +1286,7 @@ mycloud.py では、-w のスイッチを指定することによって、1週�
 
 weekly.py は次の通り（日毎の処理と同様に、同じ場所に　myplot.py と gcloud.py を置いておく必要がある）
 
-\begin{spacing}{0.87}
+\begin{spacing}{0.8}
 	\begin{itembox}[l]{/home/mat/Documents/weekly.py}
 		\begin{verbatim}
 			import sys, matplotlib.dates as mdates
@@ -1315,7 +1314,6 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			      except FileNotFoundError:
 			         continue
 			else:
-			   startstr = ''
 			   while True:
 			      try:
 			         line = input()
@@ -1323,13 +1321,17 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			            temp = l.strip()
 			            if len(temp)>0:
 			               if i==0:
+			                  startstr = temp[:10]
 			                  datev = mdates.datestr2num(temp)
 			               else:
 			                  value = float(temp)
 			            list0.append([datev, value])
 			      except EOFError:
-			         break			
-			graph_plot(list0, dirstr, startstr, True)
+			         break
+
+			title = 'Smel Level : ' + startstr + ' (Weekly)'			
+			fig = graph_plot(list0, title)
+			#fig.savefig(dirstr + '/figs/' + startstr + '.png')
   	 	\end{verbatim}
 \end{itembox}
 \end{spacing}
@@ -1697,6 +1699,8 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 	（\url{https://stackoverflow.com/questions/49302859/gsutil-serviceexception-401-anonymous-caller-does-not-have-storage-objects-list}）
 	\bibitem{10} Code samples with GCS API\\
 	（\url{https://cloud.google.com/storage/docs/samples/?hl=ja}）
+	\bibitem{11} gcsfs
+	（\url{https://dodotechno.com/python-gcs/}）
 \end{thebibliography}
 
 \end{document}          
