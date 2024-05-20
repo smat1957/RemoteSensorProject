@@ -49,8 +49,8 @@ class cloud(GCSWrapper):
         return num.strftime('%Y-%m-%d, %H:%M:%S')
  
     def df2txt(self):
-        ser0 = self.df.loc[:, 'mdate']
-        ser1 = self.df.loc[:, 'value']
+        ser0 = self.df.loc[:, 'mdate'].values
+        ser1 = self.df.loc[:, 'value'].values
         return ser0, ser1
     
     def download_as_string(self, gcs_path):
@@ -76,7 +76,7 @@ if __name__ == '__main__':
             datestr = day.strftime(s_format)
             try:
                 temp = CL.download_as_string('data/'+datestr+'.txt')
-            except FileNotFoundError:
+            except:
                 continue
             text += temp   
     else:

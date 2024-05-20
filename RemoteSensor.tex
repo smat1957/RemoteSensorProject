@@ -1197,7 +1197,7 @@ if __name__ == '__main__':
          datestr = day.strftime(s_format)
          try:
             temp = CL.download_as_string('data/'+datestr+'.txt')
-         except FileNotFoundError:
+         except:
             continue
          text += temp   
    else:
