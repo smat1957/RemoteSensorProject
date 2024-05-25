@@ -1,12 +1,11 @@
-\documentclass[12pt,a4paper,uplatex]{jsbook}
+\documentclass[12pt,a4j]{jsbook}
 \usepackage[utf8]{inputenc}
 %\usepackage{graphicx}
 %\usepackage{bm}
 %\usepackage{amsmath}
-
 \usepackage[T1]{fontenc}
-\usepackage{ascmac, here, txfonts, txfonts}
-\usepackage{listings, jlisting}
+\usepackage{ascmac, here, txfonts}
+\usepackage{listings,jlisting} %日本語のコメントアウトをする場合jlistingが必要
 \usepackage{color}
 \usepackage{fancybox}
 \usepackage{comment}
@@ -18,7 +17,6 @@
 \usepackage[hyphens]{url}
 \usepackage{here}
 \usepackage{setspace}
-%\usepackage{listings,jlisting} %日本語のコメントアウトをする場合jlistingが必要
 \begin{comment}
 %ここからソースコードの表示に関する設定
 %\lstset{
@@ -89,7 +87,7 @@
 	backgroundcolor={\color[gray]{.90}},
 	%枠外に行った時の自動改行
 	breaklines = true,
-	%自動改行後のインデント量(デフォルトでは20[pt])	
+	%自動改行後のインデント量(デフォルトでは20[pt])
 	breakindent = 10pt,
 	%標準の書体
 	basicstyle = \ttfamily\scriptsize,
@@ -125,7 +123,7 @@
 	backgroundcolor={\color[gray]{.90}},
 	%枠外に行った時の自動改行
 	breaklines = true,
-	%自動改行後のインデント量(デフォルトでは20[pt])	
+	%自動改行後のインデント量(デフォルトでは20[pt])
 	breakindent = 12pt,
 	%標準の書体
 	basicstyle = \ttfamily\scriptsize,
@@ -198,13 +196,13 @@
 	%\item ローカルマシン上に蓄積されたデータは、適切なタイミングでクラウド上のGCS（google-cloud-storage）へ退避させ、ローカルマシンの補助記憶容量を圧迫することがない様にする（第3章）
 \end{itemize}
 
-
 \chapter{ローカルにデータを保持する}
 
 \begin{table}[h]
 	\centering
 	\caption{ここで使用するshellとプログラム}
-	\label{tab:local}
+	\label{tab:local1}
+  \begin{spacing}{0.8}
 	\begin{tabular}{llp{8.5cm}}
 		\hline
 		リモート & sensor.sh & 日付文字列とセンサーの読み取り値を並べて出力するshell \\
@@ -219,8 +217,8 @@
 		ローカル & rtplot.py & w.txt を監視して、更新される度に実時間グラフを更新表示する \\
 		ローカル & myplot.py & daily.py、weekly.py から共通に呼び出されるグラフ作図用の関数 \\  \hline
 	\end{tabular}
+\end{spacing}
 \end{table}
-
 
 \section{リモートマシンの処理}
 
@@ -256,9 +254,11 @@
 \begin{itemize}
 	\item 基本的な運用形態は、モニタ、キーボード等を接続せず電源のみの接続で運用する
 	\item このマシン上では、数行の shell を登録するだけなので、基本的には他のPCのコンソールから ssh でloginして利用する（ここの例では、ユーザは mat）
-	\begin{verbatim}
+\begin{spacing}{0.8}
+\begin{verbatim}
 		ssh mat@192.168.3.27
-	\end{verbatim}
+\end{verbatim}
+\end{spacing}
 	\item VNCを有効にして他のPCからアクセスすれば、デスクトップも利用できる
 \end{itemize}
 
@@ -266,50 +266,56 @@
 
 %\begin{itemize}
 	Raspberrin Pi Zero2 W/Zero W  上に用意したこのshell（sensor.sh）は、別のRaspberryPiマシンからsshによって起動される
-	
+
 	I2Cで接続された臭気センサの出力（電圧値）は、Pythonのプログラム（adrszOD.py）によって読み取られる
-	
+
 	adrszOD.pyはAD変換器のch1からch4までの値を出力しているので、その出力をawkにパイプして、1つ目のch1の値だけを取り出している
-	
+
 	dateコマンドで作成している測定日付は、後ほどPythonのmatplotlibの都合に合わせて、新たにデータの整形処理が必要にならない様に、書式を「年−月−日と時：分：秒の間は、半角カンマ＋半角スペース1個」の格好になる様に整形する
-	
+
 	日付とセンサの出力する値が１行になる様にするため、pasteコマンド（テキストファイルを横に並べて結合するコマンド）を使っている\footnotemark[1]（shでは動かないので、bashにする）
-	
+
 	paste の2つのオペランド、<(date +....)と、<(python3 ..procmain.py..)の各々のコマンドは、<(any command) の形に囲むことにより、読み取りのためのファイル記述子を指定したことになり、それぞれを2つのファイルの様に扱うことができる\footnote[1]{「Efficient Linuxコマンドライン」オライリー・ジャパン 初版第1刷p.108、p.156（プロセス置換）}
 %\end{itemize}
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/sensor.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/bash
 dir='/home/mat/Documents'
 paste <(date +%Y-%m-%d,\ %H:%M:%S) \
 <(python3 ${dir}/procmain.py | awk '{print $1}')
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 この shell を起動してみると、次の通り
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{sensor.sh の出力例}
-	\begin{verbatim}
-mat@raspberrypizero:~/Documents $ ./sensor.sh 
+\begin{verbatim}
+mat@raspberrypizero:~/Documents $ ./sensor.sh
 2024-04-17, 02:40:55	ch1:0.79827
-mat@raspberrypizero:~/Documents $ 
-	\end{verbatim}
+mat@raspberrypizero:~/Documents $
+\end{verbatim}
 \end{itembox}
+\end{spacing}
+
+\newpage
 
 以下は、センサーを読むためのPythonのプログラム\footnote{\url{https://github.com/bit-trade-one/RasPi-Zero-One-Series}
 }
 
 \begin{spacing}{0.9}
 \begin{itembox}[l]{/home/mat/Documents/adrszOD.py}
-	\begin{verbatim}
+\begin{verbatim}
 import smbus, time
 
 class I2C:
   i2c_bus = None
   def __init__(self, bus_number=1):
     cls = type(self)    # 旧スタイルなら、cls = self.__class__
-    cls.i2c_bus = smbus.SMBus(bus_number) 
+    cls.i2c_bus = smbus.SMBus(bus_number)
 
 class TP401A(I2C):
   def __init__(self, address=0x68, Vref=2.048) -> None:
@@ -331,35 +337,37 @@ class TP401A(I2C):
     raw_s = self.sign16(int(hex(raw),16))
     volts = round((self.Vref * raw_s / 32767),5)
     return volts
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
 \end{spacing}
 
-\newpage
+%\newpage
 
 クラスTP401Aが、クラスI2Cを継承する様にしたのは、新たな別のI2C対応デバイスを、同じバス上に接続する場合を想定したもの
 
 TP401AクラスはI2Cクラスを継承しているので、TP401Aのコンストラクタの中でI2Cクラスのコンストラクタを明示的に実行し、I2Cバスの番号を指定している
 
-TP401Aクラスの上位クラスI2Cクラスのクラス変数i2c\_busへのアクセスは、「self.変数名」の格好でアクセスすることによって、インスタンス変数→クラス変数→親クラスのクラス変数の順に探索され、I2Cクラスのクラス変数にたどり着けることになる
+TP401Aクラスの上位クラスI2Cクラスのクラス変数i2c\_busへのアクセスは、「self.変数名」の格好でアクセスすることによって、インスタンス変数->クラス変数->親クラスのクラス変数の順に探索され、I2Cクラスのクラス変数にたどり着けることになる
 
 このTP401Aクラスを使う主処理は、sensor.sh の中から呼び出されている
 
+\begin{spacing}{0.85}
 \begin{itembox}[l]{/home/mat/Documents/procmain.py}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/env python
 from sarzOD import TP401A
 
 if __name__  ==  "__main__":
   smel = TP401A()
-  volts1 = smel.read_val( 0b10011000 ) 
-  volts2 = smel.read_val( 0b10111000 ) 
-  volts3 = smel.read_val( 0b11011000 ) 
+  volts1 = smel.read_val( 0b10011000 )
+  volts2 = smel.read_val( 0b10111000 )
+  volts3 = smel.read_val( 0b11011000 )
   volts4 = smel.read_val( 0b11111000 )
-  out_msg = f"ch1:{volts1} ,ch2:{volts2},ch3:{volts3},ch4:{volts4}" 
+  out_msg = f"ch1:{volts1} ,ch2:{volts2},ch3:{volts3},ch4:{volts4}"
   print(out_msg)
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 \section{ローカルマシンの処理}
 
@@ -392,19 +400,22 @@ cronの仕組みを使う（3つの時刻指定の処理を登録している）
 	\item[(3)] 毎週日曜日の朝0時1分になったら、先週1週間の（先週の日曜日の0時0分から昨日の土曜日の23時55分まで5分間隔で測定した）測定データをまとめる処理、weekly.sh を起動する
 \end{enumerate}
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{crontab -e}
-	\begin{verbatim}
+\begin{verbatim}
 		MAILTO=""
 		*/5 * * * * sh /home/mat/Documents/rsensor.sh
 		56 23 * * * sh /home/mat/Documents/daily.sh
 		1 0 * * Sun sh /home/mat/Documents/weekly.sh
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 ここで、MAILTO="" としているのは、「指定時刻にcronが処理を起動したよ」というメールを送信するためにsmtpを起動しようとして失敗し、指定の処理が起動されないという現象に対する対応である\footnote{postfixやsendmailなど、SMTPの何某かをインストールせよという説もあるが、特にメールの知らせが不要ならこのやり方が最も簡易な解決方法になる}
 
+\begin{spacing}{0.95}
 \begin{screen}
-	\begin{verbatim}
+\begin{verbatim}
 		+---------------- minute (0 - 59)
 		|  +------------- hour (0 - 23)
 		|  |  +---------- day of month (1 - 31)
@@ -412,8 +423,9 @@ cronの仕組みを使う（3つの時刻指定の処理を登録している）
 		|  |  |  |  +---- day of week (0 - 6) (Sunday=0 or 7)
 		|  |  |  |  |
 		*  *  *  *  *  command to be executed
-	\end{verbatim}
+\end{verbatim}
 \end{screen}
+\end{spacing}
 
 %daily.shとweekly.shを、shではなくbashによって起動させているのは、それぞれのshellの中でのPythonの仮想環境への移行が、shでは移行できないという現象があったため、bashで運用することとしたもの
 
@@ -427,8 +439,9 @@ cronの仕組みを使う（3つの時刻指定の処理を登録している）
 
 sshでリモートのshellを実行した結果を受け取り、ローカルのw.txtに追記し蓄積していっている
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/rsensor.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 ### sudo apt install -y sshpass ###
 dir='/home/mat/Documents'
@@ -437,13 +450,15 @@ usr='mat'
 pass='mypassword'
 sshpass -p ${pass} ssh ${usr}@${addr} \
   "bash ${dir}/sensor.sh" >> ${dir}/w.txt
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動されたshell（rsensor.sh）によって、測定結果が蓄積されていく様子がわかる（このファイルは、1日の終わりの処理で 2024-04-16.txt の様に、日付をつけたファイル名に変えて保存している）
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{w.txt -> 2024-04-16.txt}
-	\begin{verbatim}
+\begin{verbatim}
 		2024-04-16, 00:35:04	ch1:1.0896
 		2024-04-16, 00:40:04	ch1:1.09016
 		2024-04-16, 00:45:04	ch1:1.09322
@@ -451,8 +466,9 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 		2024-04-16, 23:45:04	ch1:0.9059
 		2024-04-16, 23:50:04	ch1:0.99653
 		2024-04-16, 23:55:04	ch1:0.98809
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 \subsection{日毎の処理}
 
@@ -467,8 +483,9 @@ w.txtの様子は、tail -f w.txt などとしてみると、5分ごとに起動
 	\item プログラムの実行を終えたら、Pythonの仮想環境venv11から抜けている
 \end{itemize}
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/daily.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
@@ -484,8 +501,9 @@ if [ ${hour} -ge 23 ]; then
     deactivate
   fi
 fi
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 %\newpage
 
@@ -493,18 +511,19 @@ fi
 
 %\begin{itemize}
 	myplot.py から、graph\_plot() 関数をimport している（この関数の詳細は後述）
-	
+
 	第1引数に指定があったら、そこで指定された日付のデータを元に、グラフを描画できる様にしている
-	
+
 	指定のデータファイルを開いて、最初の20文字までは、予めmatplotlibのdatesに対応した様式の日付文字列にしているので、それをUnixの日付けに変換している
-	
+
 	25文字目以降は、測定した電圧の値だが、改行文字が付いていたりするので、.strip()によってホワイトスペースを除去して、実数に変換している
-	
+
 	日付と電圧のリストを作って、それをgraph\_plot()関数に渡して作図させている
 %\end{itemize}
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/daily.py}
-	\begin{verbatim}
+\begin{verbatim}
 import sys
 from datetime import datetime as dt
 import matplotlib.dates as mdates
@@ -526,8 +545,9 @@ with open(dirstr + "/data/" + today + ".txt") as f:
 title = 'Smel Level : ' + today
 fig = graph_plot(list0, title)
 #fig.savefig(dirstr + '/figs/' + today + '.png')
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 \newpage
 
@@ -556,11 +576,12 @@ daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 ポイントは、matplotlibが理解する日付の様式で書いたものを使うことさえできれば、matplotlibのdatesに、locatorとformatterを自動生成させ、それ以下の全ての面倒な処理を任せきることができる\footnote{\url{https://matplotlib.org/stable/api/dates_api.html}
 	の記事が参考になる}点にある
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/myplot.py}
-	\begin{verbatim}
+\begin{verbatim}
 		import numpy as np, pandas as pd
 		from matplotlib import pyplot as plt, style, dates as mdates
-		
+
 		def graph_plot(list0, titlestr):
 		　　df = pd.DataFrame(list0, columns=["DateVal", "Value"])
 		　　matplotlib.style.use('ggplot')
@@ -582,8 +603,9 @@ daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 		　　ax.plot(x,y)
 		　　plt.show()
 		　　return fig
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 %グラフの図を自動的に保存する様にしたいなら、最後の fig.savefig(...) のコメントを外して有効にする
 
@@ -597,8 +619,9 @@ daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 
 Pythonのプログラムは、第1引数に日付を受け取ることができる様にしている
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/weekly.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
@@ -611,27 +634,28 @@ if [ ${hour} -ge 0 ]; then
     deactivate
   fi
 fi
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 \subsection{週毎処理のプログラム}
 
 %\begin{itemize}
 	myplot.pyからgraph\_plot()関数をimportしている
-	
+
 	第1引数で処理対象にする最終日付を受け取ることができる様にしている
-	
+
 	指定された処理対象の最終日付から、7日前の日付を求めて、7日間の日付のリストdatelistを作っている
-	
+
 	7日間の日付リストdatelistから1日ずつ取り出しては、そのファイル名のデータをdataフォルダから読み出し、日付の変換と電圧の実数への変換を行い、それらのデータのリストをlist0に追記していっている
-	
+
 	もし、指定した日付のデータファイルがなかった場合は、例外処理で受けて黙って次の日付のファイルのデータ取得に移る様にしている
-	
+
 	graph\_plot()関数にlist0を渡してグラフの作図をさせている
 %\end{itemize}
 \begin{spacing}{0.87}
 \begin{itembox}[l]{/home/mat/Documents/weekly.py}
-	\begin{verbatim}
+\begin{verbatim}
 from datetime import datetime as dt, timedelta
 import sys, matplotlib.dates as mdates
 from myplot import graph_plot
@@ -663,7 +687,7 @@ for fname in datelist:
 title = 'Smel Level : ' + startstr + ' (Weekly)'
 fig = graph_plot(list0, title)
 #fig.savefig(dirstr + '/figs/' + startstr + '.png')
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
 \end{spacing}
 
@@ -693,17 +717,17 @@ fig = graph_plot(list0, title)
 
 %\begin{itemize}
 	RTPlotクラスは、実時間によるグラフ描画に必要な関数類をまとめたもの
-	
+
 	ポイントとなるのは、 plt.show() を使わず、plt.pause(1.0)を使うこと、tail -f をプログラム上で実現することの2点
-	
+
 	self.xとself.yのリストに順にデータを追記していき、新たなデータがw.txtに追加されたタイミングでplt.pause(1.0)としている（引数の値を0.1や0.01にするとRaspberry Piでは全て描画しきれないので注意）
-	
+
 	tail\_f()関数は、コマンド tail -f w.txt をPythonのプログラムで実現したもの（指定したファイルの最終行が追記されるまでcontinueで待っている）である
 %\end{itemize}
 
 \begin{spacing}{0.87}
 \begin{breakbox}%[l]{/home/mat/Documents/rtplot.py}
-	\begin{verbatim}
+\begin{verbatim}
 import sys, time, numpy as np
 from datetime import datetime as dt, timedelta
 from matplotlib import pyplot as plt, dates as mdates, style
@@ -735,7 +759,7 @@ class RTPlot:
       print(f'File{fname} not found')
 
   def __init__(self, datestr, fpath):
-    self.fname = fpath + datestr + '.txt' 
+    self.fname = fpath + datestr + '.txt'
     self.x = []
     self.y = []
     self.ims = []
@@ -748,7 +772,7 @@ class RTPlot:
     self.ax.xaxis.set_major_locator(locator)
     self.ax.xaxis.set_major_formatter(formatter)
     xmin = mdates.datestr2num(self.todaystr)
-    xmax = mdates.datestr2num(self.tomorstr) 
+    xmax = mdates.datestr2num(self.tomorstr)
     self.ax.set_xlim([xmin, xmax])
     self.yrange()
     self.ax.set_xlabel('Date-Time')
@@ -824,11 +848,11 @@ if __name__ == "__main__":
       rtp.chop(line)
       rtp.update()
   rtp.fig.savefig(dirstr + '/figs/R_' + rtp.todaystr[:10] + '.png')
-	\end{verbatim}
+\end{verbatim}
 \end{breakbox}
 \end{spacing}
 
-\newpage
+%\newpage
 
 tail\_f()関数の中では、6分を超えてcontinueを繰り返している場合にNoneを返す事にしている（6分待てば、その間には必ず5分間隔のイベントは入ってくると思う）ので、mainの中の繰り返し処理whileの中でその事を（PEP8が可読性の観点から推奨している書き方） is not None によって判定している
 
@@ -852,24 +876,30 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 
 この実時間プロットのプログラムを起動するshellを、実行可能属性を持たせてデスクトップに置いている（マウスのクリックで起動できる）
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Desktop/rtplot.sh}
-	\begin{verbatim}
+\begin{verbatim}
 		#!/usr/bin/sh
 		dir='/home/mat/Documents'
 		cd ${dir}
 		. ${dir}/venv11/bin/activate
 		  python3 ${dir}/rtplot.py
 		deactivate
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 日付の文字列を第1引数に指定して、コマンドラインから直接実行すると、
+
+\begin{spacing}{0.95}
 \begin{verbatim}
 	cd /home/mat/Documents
 	source venv11/bin/activate
 	  python3 rtplot.py 2024-05-10
 	deactivate
 \end{verbatim}
+\end{spacing}
+
 その日付けのデータに基づく実時間グラフをfigsフォルダの中に生成する
 
 %このshellは、/usr/bin/sh で動かそうとすると「はて？source って何のこと？」などと言ってくるので、/usr/bin/bash で動かす様にする
@@ -881,7 +911,8 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 \begin{table}[h]
 	\centering
 	\caption{ここで使用するshellとプログラム}
-	\label{tab:local}
+	\label{tab:local2}
+  \begin{spacing}{0.95}
 	\begin{tabular}{llp{8.5cm}}
 		\hline
 		リモート & sensor.sh{*} & 日付文字列とセンサーの読み取り値を並べて出力するshell \\
@@ -892,6 +923,7 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 		ローカル & lackdata.py & data/フォルダ内に、本日の日付までで保存されていないデータがあったら、その日付の一覧を標準出力へ出力する \\
 		ローカル & lack.sh & lackdata.py が出力する日付をパイプを介した標準入力で受け、その日付のデータが、ローカルの w.txt、リモートの w.txt、リモートのdata/フォルダ内、ローカルのdata/フォルダ内にないか、すべて探し出してマージし、その日付のファイルとしてローカルのdata/フォルダに保存する  \\ \hline
 	\end{tabular}
+\end{spacing}
 \end{table}
 
 \section{リモートマシンの処理}
@@ -906,18 +938,21 @@ tail\_f()関数の中では、6分を超えてcontinueを繰り返している�
 リモートのコンピュータ内でデータを集める仕組みは、
 ほぼローカルコンピュータでの処理と同様にして実施する
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/proc.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
 bash ${dir}/sensor.sh >> ${dir}/w.txt
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 リモートにも、（ローカルと同様のディレクトリ構成で）/home/mat/Documents/data フォルダを用意しておく
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/procdaily.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
 dates=$(date +%Y-%m-%d)
@@ -930,19 +965,22 @@ if [ ${hour} -ge 23 ]; then
     touch ${dir}/w.txt
   fi
 fi
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 crontab では、5分ごとの処理を（ローカルマシンの処理時刻とずらすため）、2,7,12,17,... の5分おきに実行される様にした
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{crontab -e}
 \begin{verbatim}
 MAILTO=""
 # m h  dom mon dow   command
 2-57/5 * * * * sh /home/mat/Documents/proc.sh
 58 23 * * * sh /home/mat/Documents/procdaily.sh
-\end{verbatim}	
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 \newpage
 
@@ -950,8 +988,9 @@ MAILTO=""
 
 Pythonのプログラムで、ローカルマシン内に欠けている日付のデータファイルを調べる
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/lackdata.py}
-	\begin{verbatim}
+\begin{verbatim}
 from datetime import datetime as dt, timedelta
 import glob
 
@@ -977,15 +1016,17 @@ for d in range(ten_days):
 
 for fname in lacklist:
   print(fname.strftime(s_format))
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 このプログラムを実行した段階で、
 ローカルに無いファイル（名前の日付の部分）が分かったので、
 ローカルとリモートのマシンからその日付のデータを集めて整理する
 %（リモートマシン上のデータファイルで、ローカルマシンに取り込みが済んだものは、手動で削除する運用とする）
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/lack.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 TODAY=$(date +%Y-%m-%d)
 PASS='mypassword'
@@ -1018,8 +1059,9 @@ while read LINE; do (
   rm ${DIR}/${LINE}.wrk2
 ) < /dev/null; done
 deactivate
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 %\newpage
 
@@ -1028,8 +1070,9 @@ deactivate
 \begin{table}[h]
 	\centering
 	\caption{ここで使用するshellとプログラム}
-	\label{tab:local}
-	\begin{tabular}{p{1.3cm}lp{8.5cm}}
+	\label{tab:local3}
+  \begin{spacing}{0.92}
+  \begin{tabular}{p{1.3cm}lp{8.5cm}}
 		\hline
 		リモート & sensor.sh{*} & 日付文字列とセンサーの読み取り値を並べて出力するshell \\
 		リモート & adrsz0D.py{*} & センサーを読むクラスの定義 \\
@@ -1043,21 +1086,26 @@ deactivate
 		ローカル & dayplot.sh & mycloud.py から daily.py へパイプで繋いでいる \\
 		ローカル & weekplot.sh & mycloud.py から weekly.py へパイプで繋いでいる \\
 		ローカル & myplot.py{*} & グラフ作図関数. daily.pyとweekly.py から呼び出される \\
-		両方 & gcloud.py & GCSWapperクラス(upload0.pyとmycloud.pyで継承する) \\ \hline
+		両方 & gcloud.py & GCSWapperクラス(upload0.pyとmycloud.pyで継承する) \\
+    ローカル & cloudplot.sh & cloudplot.py を呼び出している \\
+    ローカル & cloudplot.py & 指定日から遡って指定日数分のグラフを作図 \\ \hline
 	\end{tabular}
+\end{spacing}
 \end{table}
 
 \section{リモートマシンの処理}
 
 センサのデータを w.txt に蓄積していく処理は、これまでのものと同じ
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/proc.sh}
-	\begin{verbatim}
+\begin{verbatim}
 		#!/usr/bin/sh
 		dir='/home/mat/Documents'
 		bash ${dir}/sensor.sh >> ${dir}/w.txt
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 procdaily.sh を次の様にする
 
@@ -1070,8 +1118,9 @@ procdaily.sh を次の様にする
 
 こうして、リモートマシン内には当日集めているデータ w.txt、バックアップの1日分のデータ bkup.txt、ファイル名に日付を付けた1日分のデータの、3つしか保持していない（日々のデータはクラウド上にある）
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/procdaily.sh}
-	\begin{verbatim}
+\begin{verbatim}
 		#!/usr/bin/sh
 		dir='/home/mat/Documents'
 		dates=$(date +%Y-%m-%d)
@@ -1087,32 +1136,38 @@ procdaily.sh を次の様にする
 		    rm ${dir}/data/${yesterday}.txt
 		  fi
 		fi
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
+
+\newpage
 
 crontab では、proc.sh を 2,7,12,17,... の5分おきに実行する様にし、procdaily.sh は23時58分に実行する様にしている（proc.shがその日の最後に実行されるのは、23時57分だから）
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{crontab -e}
-	\begin{verbatim}
+\begin{verbatim}
 		MAILTO=""
 		# m h  dom mon dow   command
 		2-57/5 * * * * sh /home/mat/Documents/proc.sh
 		58 23 * * * sh /home/mat/Documents/procdaily.sh
-	\end{verbatim}	
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 クラウドへ指定のファイルをアップロードする処理 upcloud.py は、ラッパークラスGCSWrapperを継承して、必要なメソッドを呼び出しているだけ（クラウド上にもdata/フォルダを用意して、そこに日付をファイル名とするファイルをアップロードしている）
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/upcloud.py}
-	\begin{verbatim}
+\begin{verbatim}
 		from datetime import datetime as dt
 		import sys
 		from gcloud import GCSWrapper
-		
+
 		class cloud(GCSWrapper):
 		   def __init__(self, proj_name, bkt_name):
 		      super().__init__(proj_name, bkt_name)
-		
+
 		if __name__ == '__main__':
 		   project_id = "myprojectid"
 		   bucket_name = "mybucketname"
@@ -1122,17 +1177,19 @@ crontab では、proc.sh を 2,7,12,17,... の5分おきに実行する様にし
 		   datestr = dt.now().strftime('%Y-%m-%d')
 		   if len(sys.argv) > 1:
 		     datestr = sys.argv[1]
-		   CL.upload_file(path+datestr+'.txt', 'data/'+datestr+'.txt')		
-	\end{verbatim}	
+		   CL.upload_file(path+datestr+'.txt', 'data/'+datestr+'.txt')
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
-\newpage
+%\newpage
 
 \section{ローカルマシンの処理}
 
 測定データが、日付ごとに名前をつけてクラウド上に保存されているので、ローカルではクラウドからデータを読んできて、日毎のグラフ、あるいは週毎のグラフを適時作図する処理とする
 
 クラウドからファイルをダウンロードしてローカルに保存後、そのファイルを読み込んで処理するのではなく、標準入出力のパイプによる受け渡しの方法をとる方がエレガントだと思う（ローカルに保存されるファイルはない）
+
 \subsection{日毎のグラフの作図}
 
 \begin{enumerate}
@@ -1140,8 +1197,9 @@ crontab では、proc.sh を 2,7,12,17,... の5分おきに実行する様にし
 \item[(2)] mycloud.py の標準出力を、パイプを通して daily.py の標準入力で受け取り、グラフの作図を行う
 \end{enumerate}
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/dayplot.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
 if [ $# -eq 1 ]; then
@@ -1150,22 +1208,25 @@ dates=$1
    python3 ${dir}/mycloud.py ${dates} | python3 ${dir}/daily.py
 deactivate
 fi
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 次の様に動作させる（日付を第1引数に指定する）
 
+\begin{spacing}{0.95}
 \begin{screen}
 \begin{verbatim}
 	(venv11) mat@raspi:~/Documents $ sh ./dayplot.sh 2024-05-18
 \end{verbatim}
 \end{screen}
+\end{spacing}
 
 mycloud.py と daily.py は次の通り（同じ場所に　myplot.py と gcloud.py を置いておく必要がある）
 
 \begin{spacing}{0.87}
 \begin{itembox}[l]{/home/mat/Documents/mycloud.py}
-	\begin{verbatim}
+\begin{verbatim}
 from datetime import datetime as dt, timedelta
 import sys, pandas as pd
 from gcloud import GCSWrapper
@@ -1199,30 +1260,30 @@ if __name__ == '__main__':
             temp = CL.download_as_string('data/'+datestr+'.txt')
          except:
             continue
-         text += temp   
+         text += temp
    else:
       datestr = sys.argv[1]
       text = CL.download_as_string('data/'+datestr+'.txt')
       for dstr in text.split('\n'):
          if len(dstr)>0:
             print(dstr[:20], '\t', dstr[25:].strip())
-   \end{verbatim}
+\end{verbatim}
 \end{itembox}
-   \end{spacing}
+\end{spacing}
 
 \begin{spacing}{0.87}
-	\begin{itembox}[l]{/home/mat/Documents/daily.py}
-		\begin{verbatim}
+\begin{itembox}[l]{/home/mat/Documents/daily.py}
+\begin{verbatim}
 			from datetime import datetime as dt
 			import sys, matplotlib.dates as mdates
 			from myplot import graph_plot
-			
+
 			dirstr = '/home/mat/Documents'
 			today = dt.now().strftime('%Y-%m-%d')
 			argv = len(sys.argv)
 			if argv==2:
 			   today = sys.argv[1]
-			
+
 			list0=[]
 			if argv==2:
 			   with open(dirstr + "/data/" + today + ".txt") as f:
@@ -1250,8 +1311,8 @@ if __name__ == '__main__':
 			title = 'Smel Level : ' + today
 			fig = graph_plot(list0, title)
 			#fig.savefig(dirstr + '/figs/' + today + '.png')
-  	 	\end{verbatim}
-	\end{itembox}
+\end{verbatim}
+\end{itembox}
 \end{spacing}
 
 \subsection{1週間のグラフの作図}
@@ -1261,8 +1322,9 @@ if __name__ == '__main__':
 	\item[(2)] mycloud.py の標準出力を、パイプを通して weekly.py の標準入力で受け取り、グラフの作図を行う
 \end{enumerate}
 
+\begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/weekplot.sh}
-	\begin{verbatim}
+\begin{verbatim}
 #!/usr/bin/sh
 dir='/home/mat/Documents'
 if [ $# -eq 1 ]; then
@@ -1271,28 +1333,31 @@ dates=$1
    python3 ${dir}/mycloud.py -w ${dates} | python3 ${dir}/weekly.py
 deactivate
 fi
-	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
 
 mycloud.py では、-w のスイッチを指定することによって、1週間分のファイルをクラウドから読み込むことを指示している（ソースプログラムは日毎の処理で使ったものと同じ）
 
 次の様に動作させる（1週間の最後の日付を第1引数に指定する）
 
+\begin{spacing}{0.95}
 \begin{screen}
-	\begin{verbatim}
+\begin{verbatim}
 		(venv11) mat@raspi:~/Documents $ sh ./weekplot.sh 2024-05-18
-	\end{verbatim}
+\end{verbatim}
 \end{screen}
+\end{spacing}
 
 weekly.py は次の通り（日毎の処理と同様に、同じ場所に　myplot.py と gcloud.py を置いておく必要がある）
 
 \begin{spacing}{0.8}
-	\begin{itembox}[l]{/home/mat/Documents/weekly.py}
-		\begin{verbatim}
+\begin{itembox}[l]{/home/mat/Documents/weekly.py}
+\begin{verbatim}
 			import sys, matplotlib.dates as mdates
 			from datetime import datetime as dt, timedelta
 			from myplot import graph_plot
-			
+
 			dirstr = '/home/mat/Documents'
 			today = dt.now()
 			if len(sys.argv) > 1:
@@ -1329,11 +1394,130 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			      except EOFError:
 			         break
 
-			title = 'Smel Level : ' + startstr + ' (Weekly)'			
+			title = 'Smel Level : ' + startstr + ' (Weekly)'
 			fig = graph_plot(list0, title)
 			#fig.savefig(dirstr + '/figs/' + startstr + '.png')
-  	 	\end{verbatim}
+\end{verbatim}
 \end{itembox}
+\end{spacing}
+
+\section{指定日から遡って指定日数分のグラフを作図する}
+
+次の様にコマンドラインから動作させる
+
+\begin{spacing}{0.95}
+\begin{screen}
+\begin{verbatim}
+	 例1 mat@raspi:~/Documents $ sh ./cloudplot.sh
+  例2 mat@raspi:~/Documents $ sh ./cloudplot.sh 1
+  例3 mat@raspi:~/Documents $ sh ./cloudplot.sh 2
+  例4 mat@raspi:~/Documents $ sh ./cloudplot.sh 7 2024-05-10
+\end{verbatim}
+\end{screen}
+\end{spacing}
+
+\begin{itemize}
+\item[例1は] 実行日の前日の1日分のデータをグラフにする
+\item[例2は] 例1と同じ
+\item[例3は] 実行日の前日を含めて、その日から遡って2日分のデータをグラフ化する
+\item[例4は] 指定日付2024-05-10を含めて、その日から遡って7日分のデータをグラフ化する
+\end{itemize}
+（※実行日当日分のデータは、まだクラウド上にない）\\
+
+\begin{spacing}{0.95}
+\begin{itembox}[l]{/home/mat/Documents/cloudplot.sh}
+\begin{verbatim}
+#!/usr/bin/sh
+dir='/home/mat/Documents'
+today=$(date +%Y-%m-%d)
+days='1'
+if [ $# -ge 1 ]; then
+  days=$1
+  if [ $# -eq 2 ]; then
+    today=$2
+  fi
+fi
+dates=$(date --date "${today} ${days} days ago" +%Y-%m-%d)
+. ${dir}/venv11/bin/activate
+  python3 ${dir}/cloudplot.py ${dates} ${days}
+deactivate
+\end{verbatim}
+\end{itembox}
+\end{spacing}
+
+\newpage
+
+\begin{spacing}{0.8}
+\begin{breakbox}[l]{/home/mat/Documents/cloudplot.py}
+\begin{verbatim}
+  from datetime import datetime as dt, timedelta
+  import matplotlib.dates as mdates
+  import sys, pandas as pd
+  from gcloud import GCSWrapper
+  from myplot import graph_plot
+
+  class cloud(GCSWrapper):
+      def __init__(self, proj_name, bkt_name):
+          super().__init__(proj_name, bkt_name)
+
+      def download_as_string(self, gcs_path):
+          blob = self._bucket.blob(gcs_path)
+          text = blob.download_as_string().decode()
+          return text
+
+  if __name__ == '__main__':
+      project_id = "superb-runner-423503-c2"
+      bucket_name = "mysensor01"
+      CL = cloud(project_id, bucket_name)
+      dirstr = '/home/mat/Documents'
+      path = dirstr + '/data/'
+      nargs = len(sys.argv)
+      s_format = '%Y-%m-%d'
+      span = 1
+      if nargs > 1:
+          today = dt.strptime(sys.argv[1], s_format)
+          if nargs == 3:
+              span = int(sys.argv[2])
+
+      datelist = []
+      if span==1:
+          datestr = today.strftime(s_format)
+          datelist.append(datestr)
+      else:
+          for i in range(span):
+              day = today + timedelta(days=(i))
+              datestr = day.strftime(s_format)
+              datelist.append(datestr)
+
+      text = ""
+      for datestr in datelist:
+          try:
+              temp = CL.download_as_string('data/'+datestr+'.txt')
+          except:
+              #print('=> '+datestr+'.txt : NotFoundEception!')
+              continue
+          text += temp
+
+      mini, maxi = 20.0, -20.0
+      list0 = []
+      for dstr in text.split('\n'):
+          if len(dstr)>0:
+              line = dstr[:20] + '\t' + dstr[25:].strip()
+              for i, l in enumerate(line.split('\t')):
+                  temp = l.strip()
+                  if len(temp)>0:
+                      if i==0:
+                          datev = mdates.datestr2num(temp)
+                      else:
+                          value = float(temp)
+                          mini = value if (mini>value) else mini
+                          maxi = value if (maxi<value) else maxi
+              list0.append([datev, value])
+      title = f'Smel Level : Min={mini:0.3f}, Max={maxi:0.3f}'
+      fig = graph_plot(list0, title)
+      #fig.savefig(dirstr + '/figs/' + startstr + '.png')
+\end{verbatim}
+\end{breakbox}
 \end{spacing}
 
 \chapter{補遺}
@@ -1341,7 +1525,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 \section{shell を記述する上での注意点}
 
 \begin{itemize}
-	\item 次の部分で、\$\{TODAY\}と\$\{match\}はダブルクオートで囲む必要がある	
+	\item 次の部分で、\$\{TODAY\}と\$\{match\}はダブルクオートで囲む必要がある
 	\begin{verbatim}
 		TODAY=$(date +%Y-%m-%d)
 		... ...
@@ -1360,9 +1544,9 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 		... ...
 		match=$(echo ${LINE} | awk "/^${TODAY}/")
 	\end{verbatim}
-	
+
 	%変数TODAYの様に、dateの様な「コマンドを納めている変数」の場合、変数がダブルクゥオートで挟まれた記述"\$\{TODAY\}"に出会ったタイミングで、その中のコマンドが実行され、実行結果として得られた文字列が使える様になる
-	
+
 	%ダブルクゥオートで挟むことは「中のコマンドを実行して評価して下さい」の意味であり、仮に変数をダブルクゥオートで挟まなかったら、例えば\$\{TODAY\}あるいは\$TODAYなどと書いたなら、その変数の中のコマンド文字列は実行可能なコマンドとは認識されず、アクサングラーブでコマンド文字列を挟んでいたとしても、シングルクゥオートで挟んでいた場合と同様、単なる文字列として扱われる
 	\begin{figure}[htbp]
 		\begin{minipage}[b]{0.45\linewidth}
@@ -1393,7 +1577,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 				echo `${datex}`
 				echo `${datey}`
 				echo `${datez}`
-			\end{verbatim}			
+			\end{verbatim}
 			\caption{実験：test.sh}
 		\end{minipage}
 		\hspace{1.0cm}
@@ -1420,11 +1604,11 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 				test.sh: 1: 2024-05-18: not found
 				2024-05-18
 				2024-05-18
-			\end{verbatim}		
+			\end{verbatim}
 			\caption{test.shの実行結果}
 		\end{minipage}
 	\end{figure}
-	
+
 	\item if文の -n は、"\$\{match\}"が「空でないならば」の意味（「空ならば」は、-z ）\\マッチした場合は、マッチした文字列が"\$\{match\}"に入ってくるので空ではない
 	\item sshで送る前に、予めCMD変数に\$\{LINE\}と\$\{DIR\}の評価を済ませている
 	\begin{verbatim}
@@ -1432,23 +1616,23 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 		RC=$(sshpass -p ${PASS} ssh ${USR}@${ADDR} ${CMD};echo $?)
 	\end{verbatim}
 	\item 「test -e <file\_path>」は、「test -f <file\_path>」でも動くかもしれない\\
-	\item if文の [ -s <file\_path> ] は、ファイルが存在し、なおかつ中身がある場合に True 、ファイルの中身が空 又は ファイルが存在しない場合には False が返る 
+	\item if文の [ -s <file\_path> ] は、ファイルが存在し、なおかつ中身がある場合に True 、ファイルの中身が空 又は ファイルが存在しない場合には False が返る
 	\item Pythonプログラムの標準出力を、while read LINE にパイプで渡している\\もし、ファイル（FILE\_NAME）を介して渡すのであれば、\\ cat FILE\_NAME | while read LINE; do (... ...) < /dev/null; done
 	\item while ループの中で ssh（や rsh）を実行すると、読み込むファイルが複数行あっても、1行目しか処理されないという現象に遭遇する.
-	
+
 	sshを実行すると標準入力がsshに振り向けられるため、read で読んだ1行のみならずファイル全体がsshに渡されてしまう. 結果としてsshを実行した後にはもう読める行がない事になり、whileループは1回で終了してしまうことが起こる.
-	
+
 	これを防ぐには、sshに -n オプションを付けて、標準入力をリダイレクトするのではなく、/dev/null をリダイレクトする様に指示する必要がある.（なお、この辺りの事情はrshコマンドでも同じ）
 	\item リモートのsensor.shだけはプロセス置換を実施できるbashによって動作させる %それ以外のshellはすべてshによって動作させる（shがbashのシンボリックリンクになっているLinuxもあるが）
 	\item 「source」コマンド、あるいは「.」コマンド\footnote{\url{https://atmarkit.itmedia.co.jp/ait/articles/1712/21/news015.html}}は、続いて記述するファイル（コマンド）を、現在のshell環境下で実行する時に使用する. （例えば、\~/.bashrcを編集して、その編集内容を再loginせずに有効にしたい場合に、「source \~/.bashrc」あるいは「. \~/.bashrc」などとして即座に反映させることができる. ）
-	
+
 	一方、bashによってshellを起動する場合（あるいは、shellスクリプト名の指定で直接起動する場合）は、現在のshell環境とは異なる環境下（異なるshell変数や環境変数）の別プロセスとして実行することになる.
-	
+
 	（shell変数は現在実行中のshellでのみ有効な変数、環境変数は実行されたプログラム（子プロセス）に引き継がれる変数. どちらもshellで使用可能. exportコマンドを使うと、shell変数を環境変数に変換できる）
-	
+
 	\item bashでは、「source ファイル名」と全く同じ処理を「. ファイル名」によって実行できるが、bashの基になっているshでは、「.」コマンドしか利用できず「source」コマンドは使用できない.
-	
-	%CentOSでは、shはbashへのシンボリックリンクとなっており、Ubuntuではshはdash（Debian版ash、sh互換の軽量shell）へのシンボリックリンクになっている（つまり、CentOSのshではsourceコマンドを利用できるが、Ubuntuのshではsourceコマンドを利用できない） 
+
+	%CentOSでは、shはbashへのシンボリックリンクとなっており、Ubuntuではshはdash（Debian版ash、sh互換の軽量shell）へのシンボリックリンクになっている（つまり、CentOSのshではsourceコマンドを利用できるが、Ubuntuのshではsourceコマンドを利用できない）
 \end{itemize}
 
 \newpage
@@ -1458,26 +1642,26 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 ローカルマシンのdataフォルダ以下のファイルを、クラウドへ退避させることを考える
 
 \begin{enumerate}
-	
+
 	\item 予め Google Cloud の Cloud Console（WebUI） で新規に、プロジェクトとバケットを用意しておく必要がある
-	
+
 	%\includegraphics[keepaspectratio, scale=0.3]{figs/png/cloud1.png}
-	
+
 	\includegraphics[keepaspectratio, scale=0.24]{figs/png/cloud2.png}
-	
+
 	\item プログラムからアクセスを試みると、アクセス権が無いという類のエラーに見舞われるので、Google Cloud CLI をインストール\footnote{\url{https://cloud.google.com/sdk/docs/install?hl=ja}}した後（ここ\footnote{\url{https://stackoverflow.com/questions/49302859/gsutil-serviceexception-401-anonymous-caller-does-not-have-storage-objects-list}}で議論されていることに従って）コマンドコンソールから次を行う（Yesを応答していく）
 	\begin{verbatim}
 		gcloud auth login
 		gcloud auth application-default login
 	\end{verbatim}
-	
+
 	プログラムで必要になるプロジェクト名は、WebUI上で作成した時の名前ではなく、application-default login の際、最後にコンソール上に表示されるものを使う必要がある
-	
+
 	\item ユーザ認証情報とサービス アカウント認証情報を上の手続きで提供できたなら、以下のjsonファイルに必要な情報が保存されているので、他のマシンでgoogle-cloud-storage のAPIを使用したプログラムを動かしたい場合、このjsonファイルを同じ場所にコピーして運用することができる
 	\begin{verbatim}
 		~/.config/gcloud/application_default_credentials.json
 	\end{verbatim}
-	
+
 	\footnotetext[7]{\url{https://qiita.com/Hyperion13fleet/items/594c15ac24f149ab73c9}\label{fot:fn7}}
 	もし、勝手な場所に保存したいなら、次の方法\footnotemark[7]もある様だ
 	\begin{verbatim}
@@ -1488,7 +1672,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 		project_id = "{ProjectName}"
 		client = gcs.Client(project_id, credentials=credential)
 	\end{verbatim}
-	
+
 	\item 生成されたjsonファイルを読んでみると次の様になっている
 	\begin{verbatim}
 		{
@@ -1502,30 +1686,30 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 		}
 	\end{verbatim}
 	プロジェクト名として指定するのに使うのは、"quota\_project\_id"：の後に示されている文字列になる
-	
+
 	jsonファイルを読み書きするPythonのプログラムは次の通り
 	\begin{spacing}{0.87}
 	\begin{itembox}[l]{myjson.py}
 		\begin{verbatim}
 			import json
-			
+
 			#JSON ファイルの読み込み
 			with open('application_default_credentials.json', 'r') as f:
 			json_dict = json.load(f)
 			print('json_dict:{}'.format(type(json_dict)))
 			print(f'json_dict:\n{json_dict}')
-			
+
 			#JSON データの変換
 			print('-----辞書型から JSON 形式の文字列へ変換-----')
 			json_str = json.dumps(json_dict)
 			print('json_str:{}'.format(type(json_str)))
 			print(f'json_str:\n{json_str}')
-			
+
 			print('-----JSON 形式の文字列から辞書型へ変換-----')
 			json_dict2 = json.loads(json_str)
 			print('json_dict2:{}'.format(type(json_dict2)))
 			print(f'json_dict2:\n{json_dict2}')
-			
+
 			#JSON データの書き込み
 			with open('test2.json', 'w') as f2:
 			json.dump(json_dict2, f2)
@@ -1544,11 +1728,11 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 		pip install pillow
 		pip install openpyxl
 	\end{verbatim}
-	
+
 	\item GCS(google-cloud-storage)のPythonAPIは、以下のラッパークラス\footnotemark[7]を継承して利用させて頂くことにする（ありがたや）
-	
+
 	\setcounter{footnote}{7}
-	
+
 \end{enumerate}
 
 \lstinputlisting[caption = GCSWrapper（gcloud.py）, label = prog1]{src/local/gcloud.py}
@@ -1600,7 +1784,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 	\end{verbatim}
 	\item sshpass を導入する
 	\begin{verbatim}
-		sudo apt install -y sshpass 
+		sudo apt install -y sshpass
 	\end{verbatim}
 	\item Pythonの仮想環境を /home/mat/Documents/venv11 につくる\footnote{寺田学 他3名、翔泳社「Pythonによるあたらしいデータ分析の教科書」第2版、p.50}
 	\begin{verbatim}
@@ -1703,4 +1887,4 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 	（\url{https://dodotechno.com/python-gcs/}）
 \end{thebibliography}
 
-\end{document}          
+\end{document}
