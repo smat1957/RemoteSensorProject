@@ -91,7 +91,7 @@ if __name__ == '__main__':
         try:
             temp = CL.download_as_string('data/'+datestr+'.txt')
         except:
-            #print('=> '+datestr+'.txt : NotFoundEception!')
+            #print('=> '+datestr+'.txt : NotFoundException!')
             continue
         text += temp
         
