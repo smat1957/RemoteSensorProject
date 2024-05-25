@@ -62,8 +62,8 @@ class cloud(GCSWrapper):
         return text
 
 if __name__ == '__main__':
-    project_id = "superb-runner-423503-c2"
-    bucket_name = "mysensor01"
+    project_id = "myprojectid"
+    bucket_name = "mybucketname"
     CL = cloud(project_id, bucket_name)
     #CL.show_file_names()
     dirstr = '/home/mat/Documents'
