@@ -1403,7 +1403,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 
 \section{指定日から遡って指定日数分のグラフを作図する}
 
-次の様にコマンドラインから動作させる
+コマンドラインから動作させる（これで、日毎や週毎のグラフ作成処理は不要になる）
 
 \begin{spacing}{0.95}
 \begin{screen}
@@ -1423,37 +1423,23 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 \item[例4は] 指定日付2024-05-10を含めて、その日から遡って7日分のデータをグラフ化する
 \end{itemize}
 
-実行日当日分のデータは、まだクラウド上にない（昨日分までがクラウド上にある）ので、本日以降の日付を指定している場合は、昨日の日付に直している
-
-日付はUnix時間に換算して比較している.
-dateコマンドで一度時間をパースしてUnix時間の形に直す（パースには-d / --dateオプションを使用する）Unix時間として出力するためのフォーマット文字は\%s
-
-（shell上での加算減算は、\$((\$a+\$b))など）
-
 \begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/cloudplot.sh}
 \begin{verbatim}
   #!/usr/bin/sh
   dir='/home/mat/Documents'
   today=$(date +%Y-%m-%d)
-  yesterday=$(date --date "${today} 1 days ago" +%Y-%m-%d)
+  dates=$(date --date "${today} 1 days ago" +%Y-%m-%d)
   days='1'
-  if [ $# -eq 0 ]; then
-    days='1'
-    dates=$yesterday
-  elif [ $# -eq 1 ]; then
+  if [ $# -gt 0 ]; then
     days=$1
-    dates=$yesterday
-  elif [ $# -eq 2 ]; then
-    days=$1
-    if [ $(date -d "$2" +%s) -ge $(date -d "${today}" +%s) ]; then
-      dates=$yesterday
-    else
+    if [ $# -eq 2 ]; then
+    if [ $(date -d "$2" +%s) -lt $(date -d "${today}" +%s) ]; then
       dates=$2
+    fi
     fi
   fi
   if [ $# -le 2 ]; then
-    # echo $dates $days
     . ${dir}/venv11/bin/activate
       python3 ${dir}/cloudplot.py ${dates} ${days}
     deactivate
@@ -1463,6 +1449,14 @@ dateコマンドで一度時間をパースしてUnix時間の形に直す（パ
 \end{spacing}
 
 \newpage
+
+プログラム実行日当日分のデータは、まだクラウド上にない（昨日分までがクラウド上にある）ので、本日以降の日付が指定された場合は、昨日の日付に解釈し直している
+
+日付はUnix時間で比較している.
+dateコマンドで一度日付時間をUnix時間の形に直す（ -d あるいは -\;-date オプションによる）Unix時間として出力するための書式文字には \%s を指定する
+（なお、shell上での加算減算は、\$((\$a+\$b))などでもできる）
+
+%\newpage
 
 \begin{spacing}{0.8}
 \begin{breakbox}[l]{/home/mat/Documents/cloudplot.py}
