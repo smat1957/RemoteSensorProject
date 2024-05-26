@@ -1482,13 +1482,13 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
       CL = cloud(project_id, bucket_name)
       dirstr = '/home/mat/Documents'
       path = dirstr + '/data/'
-      nargs = len(sys.argv)
       s_format = '%Y-%m-%d'
-      span = 1
-      if nargs > 1:
+      nargs = len(sys.argv)
+      if nargs == 3:
           today = dt.strptime(sys.argv[1], s_format)
-          if nargs == 3:
-              span = int(sys.argv[2])
+          span = int(sys.argv[2])
+      else:
+          return
 
       datelist = []
       for i in range(span-1, -1, -1):

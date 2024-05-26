@@ -70,11 +70,9 @@ if __name__ == '__main__':
     path = dirstr + '/data/'
     s_format = '%Y-%m-%d'
     nargs = len(sys.argv)
-    span = 1
-    if nargs > 1:
+    if nargs == 3:
         today = dt.strptime(sys.argv[1], s_format)
-        if nargs == 3:
-            span = int(sys.argv[2])
+        span = int(sys.argv[2])
     
     datelist = []
     for i in range(span-1, -1, -1):
