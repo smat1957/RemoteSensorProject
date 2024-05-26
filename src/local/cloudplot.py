@@ -69,10 +69,11 @@ if __name__ == '__main__':
     dirstr = '/home/mat/Documents'
     path = dirstr + '/data/'
     s_format = '%Y-%m-%d'
-    nargs = len(sys.argv)
-    if nargs == 3:
+    if len(sys.argv) == 3:
         today = dt.strptime(sys.argv[1], s_format)
         span = int(sys.argv[2])
+    else:
+        sys.exit()
     
     datelist = []
     for i in range(span-1, -1, -1):
