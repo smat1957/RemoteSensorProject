@@ -68,8 +68,8 @@ if __name__ == '__main__':
     #CL.show_file_names()
     dirstr = '/home/mat/Documents'
     path = dirstr + '/data/'
-    nargs = len(sys.argv)
     s_format = '%Y-%m-%d'
+    nargs = len(sys.argv)
     span = 1
     if nargs > 1:
         today = dt.strptime(sys.argv[1], s_format)
@@ -77,21 +77,17 @@ if __name__ == '__main__':
             span = int(sys.argv[2])
     
     datelist = []
-    if span==1:
-        datestr = today.strftime(s_format)
+    for i in range(span-1, -1, -1):
+        day = today - timedelta(days=i)
+        datestr = day.strftime(s_format)
         datelist.append(datestr)
-    else:
-        for i in range(span):
-            day = today + timedelta(days=(i))
-            datestr = day.strftime(s_format)
-            datelist.append(datestr)
         
     text = ""
     for datestr in datelist:
         try:
             temp = CL.download_as_string('data/'+datestr+'.txt')
         except:
-            #print('=> '+datestr+'.txt : NotFoundException!')
+            #print('=> '+datestr+'.txt : NotFoundEception!')
             continue
         text += temp
         

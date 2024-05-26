@@ -16,7 +16,7 @@ for i in range(7):
     day = today - timedelta(days=(7-i))
     datelist.append(day.strftime(s_format))
 
-if sys.argv==2:
+if len(sys.argv)==2:
     for fname in datelist:
         try:
             with open(dirstr + "/data/" + fname + ".txt") as f:

@@ -1280,12 +1280,12 @@ if __name__ == '__main__':
 
 			dirstr = '/home/mat/Documents'
 			today = dt.now().strftime('%Y-%m-%d')
-			argv = len(sys.argv)
-			if argv==2:
+			nargv = len(sys.argv)
+			if nargv==2:
 			   today = sys.argv[1]
 
 			list0=[]
-			if argv==2:
+			if nargv==2:
 			   with open(dirstr + "/data/" + today + ".txt") as f:
 			   for line in f:
 			      datestr = line[:20].strip()
@@ -1367,7 +1367,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			for i in range(7):
 			   day = today - timedelta(days=(7-i))
 			   datelist.append(day.strftime('%Y-%m-%d'))
-			if sys.argv==2:
+			if len(sys.argv)==2:
 			   for fname in datelist:
 			      try:
 			         with open(dirstr + "/data/" + fname + ".txt") as f:
@@ -1422,25 +1422,42 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 \item[例3は] 実行日の前日を含めて、その日から遡って2日分のデータをグラフ化する
 \item[例4は] 指定日付2024-05-10を含めて、その日から遡って7日分のデータをグラフ化する
 \end{itemize}
-（※実行日当日分のデータは、まだクラウド上にない）\\
+
+実行日当日分のデータは、まだクラウド上にない（昨日分までがクラウド上にある）ので、本日以降の日付を指定している場合は、昨日の日付に直している
+
+日付はUnix時間に換算して比較している.
+dateコマンドで一度時間をパースしてUnix時間の形に直す（パースには-d / --dateオプションを使用する）Unix時間として出力するためのフォーマット文字は\%s
+
+（shell上での加算減算は、\$((\$a+\$b))など）
 
 \begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/cloudplot.sh}
 \begin{verbatim}
-#!/usr/bin/sh
-dir='/home/mat/Documents'
-today=$(date +%Y-%m-%d)
-days='1'
-if [ $# -ge 1 ]; then
-  days=$1
-  if [ $# -eq 2 ]; then
-    today=$2
+  #!/usr/bin/sh
+  dir='/home/mat/Documents'
+  today=$(date +%Y-%m-%d)
+  yesterday=$(date --date "${today} 1 days ago" +%Y-%m-%d)
+  days='1'
+  if [ $# -eq 0 ]; then
+    days='1'
+    dates=$yesterday
+  elif [ $# -eq 1 ]; then
+    days=$1
+    dates=$yesterday
+  elif [ $# -eq 2 ]; then
+    days=$1
+    if [ $(date -d "$2" +%s) -ge $(date -d "${today}" +%s) ]; then
+      dates=$yesterday
+    else
+      dates=$2
+    fi
   fi
-fi
-dates=$(date --date "${today} ${days} days ago" +%Y-%m-%d)
-. ${dir}/venv11/bin/activate
-  python3 ${dir}/cloudplot.py ${dates} ${days}
-deactivate
+  if [ $# -le 2 ]; then
+    # echo $dates $days
+    . ${dir}/venv11/bin/activate
+      python3 ${dir}/cloudplot.py ${dates} ${days}
+    deactivate
+  fi
 \end{verbatim}
 \end{itembox}
 \end{spacing}
@@ -1480,14 +1497,10 @@ deactivate
               span = int(sys.argv[2])
 
       datelist = []
-      if span==1:
-          datestr = today.strftime(s_format)
+      for i in range(span-1, -1, -1):
+          day = today - timedelta(days=i)
+          datestr = day.strftime(s_format)
           datelist.append(datestr)
-      else:
-          for i in range(span):
-              day = today + timedelta(days=(i))
-              datestr = day.strftime(s_format)
-              datelist.append(datestr)
 
       text = ""
       for datestr in datelist:
