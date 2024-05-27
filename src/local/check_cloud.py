@@ -2,6 +2,11 @@ import pandas as pd
 from gcloud import GCSWrapper
 
 class cloud(GCSWrapper):
+    def __init__(self, prj_id, bkt_name):
+        super().__init__(prj_id, bkt_name)
+        self.x = []
+        self.y = []
+
     def delete_blob(self, blob_name):
         """Deletes a blob from the bucket."""
         # bucket_name = "your-bucket-name"
@@ -16,11 +21,6 @@ class cloud(GCSWrapper):
         generation_match_precondition = blob.generation
         blob.delete(if_generation_match=generation_match_precondition)
         print(f"Blob {blob_name} deleted.")
-
-    def __init__(self, proj_name, bkt_name):
-        super().__init__(proj_name, bkt_name)
-        self.x = []
-        self.y = []
         
     def readdata(self, fname):
         try:

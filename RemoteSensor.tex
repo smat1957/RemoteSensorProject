@@ -1468,8 +1468,8 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
   from myplot import graph_plot
 
   class cloud(GCSWrapper):
-      def __init__(self, proj_name, bkt_name):
-          super().__init__(proj_name, bkt_name)
+      def __init__(self, prj_id, bkt_name):
+          super().__init__(prj_id, bkt_name)
 
       def download_as_string(self, gcs_path):
           blob = self._bucket.blob(gcs_path)
