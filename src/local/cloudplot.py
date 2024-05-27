@@ -61,6 +61,24 @@ class cloud(GCSWrapper):
         text = blob.download_as_string().decode()
         return text
 
+def chop2list(text):
+    mini, maxi = 20.0, -20.0
+    list0 = []
+    for dstr in text.split('\n'):
+        if len(dstr)>0:
+            line = dstr[:20] + '\t' + dstr[25:].strip()
+            for i, l in enumerate(line.split('\t')):
+                temp = l.strip()
+                if len(temp)>0:
+                    if i==0:
+                        datev = mdates.datestr2num(temp)
+                    else:
+                        value = float(temp)
+                        mini = value if (mini>value) else mini
+                        maxi = value if (maxi<value) else maxi                    
+            list0.append([datev, value])
+    return list0, maxi, mini
+
 if __name__ == '__main__':
     project_id = "myprojectid"
     bucket_name = "mybucketname"
@@ -89,22 +107,8 @@ if __name__ == '__main__':
             #print('=> '+datestr+'.txt : NotFoundEception!')
             continue
         text += temp
-        
-    mini, maxi = 20.0, -20.0
-    list0 = []
-    for dstr in text.split('\n'):
-        if len(dstr)>0:
-            line = dstr[:20] + '\t' + dstr[25:].strip()
-            for i, l in enumerate(line.split('\t')):
-                temp = l.strip()
-                if len(temp)>0:
-                    if i==0:
-                        datev = mdates.datestr2num(temp)
-                    else:
-                        value = float(temp)
-                        mini = value if (mini>value) else mini
-                        maxi = value if (maxi<value) else maxi                    
-            list0.append([datev, value])
+    
+    list0, maxi, mini = chop2list(text)
     title = f'Smel Level : Min={mini:0.3f}, Max={maxi:0.3f}'
     fig = graph_plot(list0, title)
     #fig.savefig(dirstr + '/figs/' + startstr + '.png')
