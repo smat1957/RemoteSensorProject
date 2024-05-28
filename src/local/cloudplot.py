@@ -80,6 +80,7 @@ if __name__ == '__main__':
         else:
             rows = int(sys.argv[3])
             cols = int(sys.argv[4])
+            span = rows * cols
     else:
         sys.exit()
     

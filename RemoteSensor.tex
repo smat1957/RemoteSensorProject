@@ -1518,6 +1518,7 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
           else:
               rows = int(sys.argv[3])
               cols = int(sys.argv[4])
+              span = rows * cols
       else:
           sys.exit()
 
@@ -1540,7 +1541,7 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
           fig = graph_plot(datalist, title)
       else:
           fig = graph_plots(datalist, title, rows, cols)
-  #fig.savefig(dirstr+'/figs/'+'savefig'+'.png')
+      fig.savefig(dirstr+'/figs/'+'savefig'+'.png')
 \end{verbatim}
 \end{breakbox}
 \end{spacing}
