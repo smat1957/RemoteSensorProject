@@ -5,7 +5,7 @@ from gcloud import GCSWrapper
 from googleapiclient import discovery, errors
 #from oauth2client.client import GoogleCredentials
 from google.api_core.exceptions import NotFound
-from myplot import graph_plot
+from myplot import graph_plot, graph_plots
 
 class cloud(GCSWrapper):
     def delete_blob(self, blob_name):
@@ -61,35 +61,25 @@ class cloud(GCSWrapper):
         text = blob.download_as_string().decode()
         return text
 
-def chop2list(text):
-    mini, maxi = 20.0, -20.0
-    list0 = []
-    for dstr in text.split('\n'):
-        if len(dstr)>0:
-            line = dstr[:20] + '\t' + dstr[25:].strip()
-            for i, l in enumerate(line.split('\t')):
-                temp = l.strip()
-                if len(temp)>0:
-                    if i==0:
-                        datev = mdates.datestr2num(temp)
-                    else:
-                        value = float(temp)
-                        mini = value if (mini>value) else mini
-                        maxi = value if (maxi<value) else maxi                    
-            list0.append([datev, value])
-    return list0, maxi, mini
-
 if __name__ == '__main__':
     project_id = "myprojectid"
     bucket_name = "mybucketname"
     CL = cloud(project_id, bucket_name)
-    #CL.show_file_names()
     dirstr = '/home/mat/Documents'
     path = dirstr + '/data/'
     s_format = '%Y-%m-%d'
-    if len(sys.argv) == 3:
+    nargs = len(sys.argv)
+    if nargs == 5:
         today = dt.strptime(sys.argv[1], s_format)
         span = int(sys.argv[2])
+        if 6<span:
+            span = 6
+        if span<3:
+            rows = 1
+            cols = span
+        else:
+            rows = int(sys.argv[3])
+            cols = int(sys.argv[4])
     else:
         sys.exit()
     
@@ -98,17 +88,18 @@ if __name__ == '__main__':
         day = today - timedelta(days=i)
         datestr = day.strftime(s_format)
         datelist.append(datestr)
-        
-    text = ""
+    
+    datalist = []
     for datestr in datelist:
         try:
             temp = CL.download_as_string('data/'+datestr+'.txt')
         except:
-            #print('=> '+datestr+'.txt : NotFoundEception!')
             continue
-        text += temp
+        datalist.append(temp)
     
-    list0, maxi, mini = chop2list(text)
-    title = f'Smel Level : Min={mini:0.3f}, Max={maxi:0.3f}'
-    fig = graph_plot(list0, title)
-    #fig.savefig(dirstr + '/figs/' + startstr + '.png')
+    title = 'Smel : '
+    if (rows==1 and cols==1):
+        fig = graph_plot(datalist, title)
+    else:
+        fig = graph_plots(datalist, title, rows, cols)
+    #fig.savefig(dirstr + '/figs/' + 'savefig' + '.png')

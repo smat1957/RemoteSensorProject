@@ -1411,7 +1411,8 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 	 例1 mat@raspi:~/Documents $ sh ./cloudplot.sh
   例2 mat@raspi:~/Documents $ sh ./cloudplot.sh 1
   例3 mat@raspi:~/Documents $ sh ./cloudplot.sh 2
-  例4 mat@raspi:~/Documents $ sh ./cloudplot.sh 7 2024-05-10
+  例4 mat@raspi:~/Documents $ sh ./cloudplot.sh 6 2024-05-10
+  例5 mat@raspi:~/Documents $ sh ./cloudplot.sh 7 2024-05-10 2 4
 \end{verbatim}
 \end{screen}
 \end{spacing}
@@ -1420,8 +1421,23 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 \item[例1は] 実行日の前日の1日分のデータをグラフにする
 \item[例2は] 例1と同じ
 \item[例3は] 実行日の前日を含めて、その日から遡って2日分のデータをグラフ化する
-\item[例4は] 指定日付2024-05-10を含めて、その日から遡って7日分のデータをグラフ化する
+\item[例4は] 指定日付2024-05-10を含めて、その日から遡って6日分のデータをグラフ化する
+\item[例5は] 9日分のデータを２行4列でグラフ化する（8日分しか表示しない）
 \end{itemize}
+
+\begin{figure}[htbp]
+	\begin{minipage}[b]{1.0\linewidth}
+		\centering
+		\includegraphics[keepaspectratio, scale=0.37]{figs/png/savefig.png}
+		\caption{6日分のグラフ}
+	\end{minipage}
+	%\hspace{1.0cm}
+	%\begin{minipage}[b]{0.45\linewidth}
+	%\centering
+	%\includegraphics[keepaspectratio, scale=0.25]{figs/png/nioi_sensor.png}
+	%\caption{ADRSZOD:TP401A}
+	%\end{minipage}
+\end{figure}
 
 \begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/cloudplot.sh}
@@ -1430,25 +1446,33 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
   dir='/home/mat/Documents'
   today=$(date +%Y-%m-%d)
   dates=$(date --date "${today} 1 days ago" +%Y-%m-%d)
-  days='1'
+  days='1' rows='2' cols='3'
   if [ $# -gt 0 ]; then
     days=$1
-    if [ $# -eq 2 ]; then
+    if [ "${days}" -gt 6 ]; then days='6'; fi
+    if [ $# -ge 2 ]; then
     if [ $(date -d "$2" +%s) -lt $(date -d "${today}" +%s) ]; then
       dates=$2
     fi
     fi
+    if [ $# -ge 3 ]; then
+      rows=$3 cols=$4
+      if [ "${rows}" -gt 2 ]; then rows='2'; fi
+      if [ "${cols}" -gt 3 ]; then cols='3'; fi
+    fi
   fi
-  if [ $# -le 2 ]; then
+  if [ $# -le 4 ]; then
+    #echo $# $1 $2 $3 $4
+    #echo $dates "$days" "$rows" "$cols"
     . ${dir}/venv11/bin/activate
-      python3 ${dir}/cloudplot.py ${dates} ${days}
+      python3 ${dir}/cloudplot.py ${dates} ${days} ${rows} ${cols}
     deactivate
   fi
 \end{verbatim}
 \end{itembox}
 \end{spacing}
 
-\newpage
+%\newpage
 
 プログラム実行日当日分のデータは、まだクラウド上にない（昨日分までがクラウド上にある）ので、本日以降の日付が指定された場合は、昨日の日付に解釈し直している
 
@@ -1456,16 +1480,15 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 dateコマンドで一度日付時間をUnix時間の形に直す（ -d あるいは -\;-date オプションによる）Unix時間として出力するための書式文字には \%s を指定する
 （なお、shell上での加算減算は、\$((\$a+\$b))などでもできる）
 
-%\newpage
+\newpage
 
 \begin{spacing}{0.8}
 \begin{breakbox}[l]{/home/mat/Documents/cloudplot.py}
 \begin{verbatim}
   from datetime import datetime as dt, timedelta
-  import matplotlib.dates as mdates
-  import sys, pandas as pd
+  import sys, matplotlib.dates as mdates
   from gcloud import GCSWrapper
-  from myplot import graph_plot
+  from myplot import graph_plot, graph_plots
 
   class cloud(GCSWrapper):
       def __init__(self, prj_id, bkt_name):
@@ -1476,24 +1499,6 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
           text = blob.download_as_string().decode()
           return text
 
-  def chop2list(text):
-      mini, maxi = 20.0, -20.0
-      list0 = []
-      for dstr in text.split('\n'):
-          if len(dstr)>0:
-              line = dstr[:20] + '\t' + dstr[25:].strip()
-              for i, l in enumerate(line.split('\t')):
-                  temp = l.strip()
-                  if len(temp)>0:
-                      if i==0:
-                          datev = mdates.datestr2num(temp)
-                      else:
-                          value = float(temp)
-                          mini = value if (mini>value) else mini
-                          maxi = value if (maxi<value) else maxi
-              list0.append([datev, value])
-      return list0, maxi, mini
-
   if __name__ == '__main__':
       project_id = "myprojectid"
       bucket_name = "mybucketname"
@@ -1501,10 +1506,18 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
       dirstr = '/home/mat/Documents'
       path = dirstr + '/data/'
       s_format = '%Y-%m-%d'
-
-      if len(sys.argv) == 3:
+      nargs = len(sys.argv)
+      if nargs == 5:
           today = dt.strptime(sys.argv[1], s_format)
           span = int(sys.argv[2])
+          if 6<span:
+              span = 6
+          if span<3:
+              rows = 1
+              cols = span
+          else:
+              rows = int(sys.argv[3])
+              cols = int(sys.argv[4])
       else:
           sys.exit()
 
@@ -1514,19 +1527,117 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
           datestr = day.strftime(s_format)
           datelist.append(datestr)
 
-      text = ""
+      datalist = []
       for datestr in datelist:
           try:
               temp = CL.download_as_string('data/'+datestr+'.txt')
           except:
-              #print('=> '+datestr+'.txt : NotFoundException!')
               continue
-          text += temp
+          datalist.append(temp)
 
-      list0, maxi, mini = chop2list(text)
-      title = f'Smel Level : Min={mini:0.3f}, Max={maxi:0.3f}'
-      fig = graph_plot(list0, title)
-      #fig.savefig(dirstr + '/figs/' + startstr + '.png')
+      title = 'Smel : '
+      if (rows==1 and cols==1):
+          fig = graph_plot(datalist, title)
+      else:
+          fig = graph_plots(datalist, title, rows, cols)
+  #fig.savefig(dirstr+'/figs/'+'savefig'+'.png')
+\end{verbatim}
+\end{breakbox}
+\end{spacing}
+
+myplot.py をこれまでのものと書き換えている
+
+graph\_plot()は1つのグラフ用紙に描画するが、graph\_plots()はnrows=rows行ncols=cols列のグラフ用紙に描画する（rows=cols=1の場合、graph\_plots()でも作図可能だが、graph\_plot()も残している）
+
+\begin{spacing}{0.8}
+\begin{breakbox}[l]{/home/mat/Documents/myplot.py}
+\begin{verbatim}
+import numpy as np, pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.style
+import matplotlib.dates as mdates
+
+def chop(daystr):
+    x, y = [], []
+    for dstr in daystr.split('\n'):
+        if len(dstr)>0:
+            datev = mdates.datestr2num(dstr[:20])
+            x.append(datev)
+            value = float(dstr[25:].strip())
+            y.append(value)
+    return x, y
+
+def graph_plot(datalist, tstr):
+    x, y = [], []
+    for daystr in datalist:
+        x0, y0 = chop(daystr)
+        x.extend(x0)
+        y.extend(y0)
+    ymax, ymin, yave = max(y), min(y), np.mean(y)
+    title = tstr +\
+      f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
+    matplotlib.style.use('ggplot')
+    fig, ax = plt.subplots()
+    step = (ymax - ymin) / 10.0
+    ymax = ((ymax//step)+1)*step+step/2.0
+    ymin = (ymin//step)*step-step/2.0
+    locator = mdates.AutoDateLocator()
+    formatter = mdates.ConciseDateFormatter(locator)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
+    ax.set_ylim([ymin, ymax])
+    ax.set_xlabel('Date-Time')
+    ax.set_ylabel('Volt')
+    ax.set_title(title)
+    ax.plot(x, y)
+    plt.show()
+    return fig
+
+def graph_plots(datalist, tstr, rows, cols):
+    ymax, ymin, yave = -20.0, 20.0, 0.0
+    x, y = [], []
+    for daystr in datalist:
+        x0, y0 = chop(daystr)
+        x.append(x0)
+        y.append(y0)
+        maxi, mini = max(y0), min(y0)
+        ymax = maxi if (maxi>ymax) else ymax
+        ymin = mini if (mini<ymin) else ymin
+        yave += np.mean(y0)
+    yave = yave / len(datalist)
+    title = tstr +\
+      f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
+
+    matplotlib.style.use('ggplot')
+    fig, ax = plt.subplots(nrows=rows, ncols=cols,\
+                squeeze=False, tight_layout=True,\
+                sharex=None, sharey='row', figsize=(15,9))
+    step = (ymax - ymin) / 10.0
+    ymax = ((ymax//step)+1)*step+step/2.0
+    ymin = (ymin//step)*step-step/2.0
+
+    k = 0
+    for i in range(rows):
+        for j in range(cols):
+            locator = mdates.AutoDateLocator()
+            formatter = mdates.ConciseDateFormatter(locator)
+            ax[i,j].xaxis.set_major_locator(locator)
+            ax[i,j].xaxis.set_major_formatter(formatter)
+            ax[i,j].set_ylim([ymin, ymax])
+            if k<len(x):
+                ax[i,j].plot(x[k], y[k])
+                k+=1
+            else:
+                break
+        else:
+            continue
+        break
+
+    fig.supxlabel('Date-Time')
+    fig.supylabel('Volt')
+    fig.suptitle(title)
+    plt.show()
+    return fig
 \end{verbatim}
 \end{breakbox}
 \end{spacing}
