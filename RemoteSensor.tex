@@ -1278,32 +1278,32 @@ if __name__ == '__main__':
 \begin{spacing}{0.87}
 \begin{itembox}[l]{/home/mat/Documents/daily.py}
 \begin{verbatim}
-			from datetime import datetime as dt
-			import sys, matplotlib.dates as mdates
-			from myplot import graph_plot
+    from datetime import datetime as dt
+    import sys, matplotlib.dates as mdates
+    from myplot import graph_plot
 
-			dirstr = '/home/mat/Documents'
-			today = dt.now().strftime('%Y-%m-%d')
-			nargv = len(sys.argv)
-			if nargv==2:
-			   today = sys.argv[1]
+    dirstr = '/home/mat/Documents'
+    today = dt.now().strftime('%Y-%m-%d')
+    nargv = len(sys.argv)
+    if nargv==2:
+      today = sys.argv[1]
 
-			list0=[]
-      if nargv==2:
-        with open(dirstr + "/data/" + today + ".txt") as f:
-          for line in f:
-            list0.append(line)
-			else:
-			   while True:
-			      try:
-			         line = input()
-               list0.append(line)
-			      except EOFError:
-			         break
+    list0=[]
+    if nargv==2:
+      with open(dirstr + "/data/" + today + ".txt") as f:
+        for line in f:
+          list0.append(line)
+    else:
+      while True:
+        try:
+          line = input()
+          list0.append(line)
+        except EOFError:
+          break
 
-			title = 'Smel : '
-			fig = graph_plot(list0, title)
-			#fig.savefig(dirstr + '/figs/' + today + '.png')
+    title = 'Smel : '
+    fig = graph_plot(list0, title)
+    #fig.savefig(dirstr + '/figs/' + today + '.png')
 \end{verbatim}
 \end{itembox}
 \end{spacing}
@@ -1363,20 +1363,20 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			   day = today - timedelta(days=(7-i))
 			   datelist.append(day.strftime('%Y-%m-%d'))
       if len(sys.argv)==2:
-          for fname in datelist:
-            try:
-                with open(dirstr + "/data/" + fname + ".txt") as f:
-                  for line in f:
-                      list0.append(line)
-			      except FileNotFoundError:
-			         continue
-			else:
+        for fname in datelist:
+          try:
+            with open(dirstr + "/data/" + fname + ".txt") as f:
+              for line in f:
+                list0.append(line)
+          except FileNotFoundError:
+            continue
+      else:
         while True:
           try:
-              line = input()
-              list0.append(line)
-			      except EOFError:
-			         break
+            line = input()
+            list0.append(line)
+          except EOFError:
+            break
 
 			title = 'Smel(W) : '
 			fig = graph_plot(list0, title)
