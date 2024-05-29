@@ -82,6 +82,4 @@ if __name__ == '__main__':
     else:
         datestr = sys.argv[1]
         text = CL.download_as_string('data/'+datestr+'.txt')
-    for dstr in text.split('\n'):
-        if len(dstr)>0:
-            print(dstr[:20], '\t', dstr[25:].strip())
+    print(text)

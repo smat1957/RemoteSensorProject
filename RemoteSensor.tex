@@ -537,12 +537,9 @@ if len(sys.argv) > 1:
 list0=[]
 with open(dirstr + "/data/" + today + ".txt") as f:
   for line in f:
-    datestr = line[:20].strip()
-    datev = mdates.datestr2num(datestr)
-    value = float(line[25:].strip())
-    list0.append([datev, value])
+    list0.append(line)
 
-title = 'Smel Level : ' + today
+title = 'Smel : '
 fig = graph_plot(list0, title)
 #fig.savefig(dirstr + '/figs/' + today + '.png')
 \end{verbatim}
@@ -579,30 +576,42 @@ daily.py と weekly.py で共通に呼び出しているgraph\_plot()関数を�
 \begin{spacing}{0.95}
 \begin{itembox}[l]{/home/mat/Documents/myplot.py}
 \begin{verbatim}
-		import numpy as np, pandas as pd
-		from matplotlib import pyplot as plt, style, dates as mdates
-
-		def graph_plot(list0, titlestr):
-		　　df = pd.DataFrame(list0, columns=["DateVal", "Value"])
-		　　matplotlib.style.use('ggplot')
-		　　fig, ax = plt.subplots()
-		　　x = df.loc[:,"DateVal"].values
-		　　y = df.loc[:,"Value"].values
-		　　locator = mdates.AutoDateLocator()
-		　　formatter = mdates.ConciseDateFormatter(locator)
-		　　ax.xaxis.set_major_locator(locator)
-		　　ax.xaxis.set_major_formatter(formatter)
-		　　ymin, ymax = y.min(), y.max()
-		　　step = (ymax - ymin) / 10.0
-		　　ymax = ((ymax // step) + 1) * step + step/2.0
-		　　ymin = (ymin // step) * step - step/2.0
-		　　ax.set_ylim([ymin, ymax])
-		　　ax.set_xlabel('Date-Time')
-		　　ax.set_ylabel('Volt')
-		　　ax.set_title(titlestr)
-		　　ax.plot(x,y)
-		　　plt.show()
-		　　return fig
+import numpy as np, pandas as pd
+from matplotlib import pyplot as plt, style, dates as mdates
+def chop(daystr):
+    x, y = [], []
+    for dstr in daystr.split('\n'):
+        if len(dstr)>0:
+            datev = mdates.datestr2num(dstr[:20])
+            x.append(datev)
+            value = float(dstr[25:].strip())
+            y.append(value)
+    return x, y
+def graph_plot(datalist, tstr):
+    x, y = [], []
+    for daystr in datalist:
+        x0, y0 = chop(daystr)
+        x.extend(x0)
+        y.extend(y0)
+    ymax, ymin, yave = max(y), min(y), np.mean(y)
+    title = tstr +\
+      f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
+    matplotlib.style.use('ggplot')
+    fig, ax = plt.subplots()
+    step = (ymax - ymin) / 10.0
+    ymax = ((ymax//step)+1)*step+step/2.0
+    ymin = (ymin//step)*step-step/2.0
+    locator = mdates.AutoDateLocator()
+    formatter = mdates.ConciseDateFormatter(locator)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
+    ax.set_ylim([ymin, ymax])
+    ax.set_xlabel('Date-Time')
+    ax.set_ylabel('Volt')
+    ax.set_title(title)
+    ax.plot(x, y)
+    plt.show()
+    return fig
 \end{verbatim}
 \end{itembox}
 \end{spacing}
@@ -677,14 +686,11 @@ for fname in datelist:
   try:
     with open(dirstr + "/data/" + fname + ".txt") as f:
       for line in f:
-        datestr = line[:20].strip()
-        datev = mdates.datestr2num(datestr)
-        value = float(line[25:].strip())
-        list0.append([datev, value])
+        list0.append(line)
   except FileNotFoundError:
     continue
 
-title = 'Smel Level : ' + startstr + ' (Weekly)'
+title = 'Smel(W) : '
 fig = graph_plot(list0, title)
 #fig.savefig(dirstr + '/figs/' + startstr + '.png')
 \end{verbatim}
@@ -711,7 +717,7 @@ fig = graph_plot(list0, title)
 	%\end{minipage}
 \end{figure}
 
-%\newpage
+\newpage
 
 \subsection{測定データのグラフを実時間で描画する}
 
@@ -1085,7 +1091,7 @@ deactivate
 		ローカル & weekly.py & 標準入力から受け取った計測データをもとに、1週間の値の変化をグラフにする（更新） \\
 		ローカル & dayplot.sh & mycloud.py から daily.py へパイプで繋いでいる \\
 		ローカル & weekplot.sh & mycloud.py から weekly.py へパイプで繋いでいる \\
-		ローカル & myplot.py{*} & グラフ作図関数. daily.pyとweekly.py から呼び出される \\
+		ローカル & myplot.py & daily.py,weekly.py,cloudplot.pyから呼び出される（更新）\\
 		両方 & gcloud.py & GCSWapperクラス(upload0.pyとmycloud.pyで継承する) \\
     ローカル & cloudplot.sh & cloudplot.py を呼び出している \\
     ローカル & cloudplot.py & 指定日から遡って指定日数分のグラフを作図 \\ \hline
@@ -1264,9 +1270,7 @@ if __name__ == '__main__':
    else:
       datestr = sys.argv[1]
       text = CL.download_as_string('data/'+datestr+'.txt')
-      for dstr in text.split('\n'):
-         if len(dstr)>0:
-            print(dstr[:20], '\t', dstr[25:].strip())
+   print(text)
 \end{verbatim}
 \end{itembox}
 \end{spacing}
@@ -1285,35 +1289,26 @@ if __name__ == '__main__':
 			   today = sys.argv[1]
 
 			list0=[]
-			if nargv==2:
-			   with open(dirstr + "/data/" + today + ".txt") as f:
-			   for line in f:
-			      datestr = line[:20].strip()
-			      datev = mdates.datestr2num(datestr)
-			      value = float(line[25:].strip())
-			      list0.append([datev, value])
+      if nargv==2:
+        with open(dirstr + "/data/" + today + ".txt") as f:
+          for line in f:
+            list0.append(line)
 			else:
 			   while True:
 			      try:
 			         line = input()
-			         for i, l in enumerate(line.split('\t')):
-			            temp = l.strip()
-			            if len(temp)>0:
-			               if i==0:
-			                  today = temp[:10]
-			                  datev = mdates.datestr2num(temp)
-			               else:
-			                  value = float(temp)
-			            list0.append([datev, value])
+               list0.append(line)
 			      except EOFError:
 			         break
 
-			title = 'Smel Level : ' + today
+			title = 'Smel : '
 			fig = graph_plot(list0, title)
 			#fig.savefig(dirstr + '/figs/' + today + '.png')
 \end{verbatim}
 \end{itembox}
 \end{spacing}
+
+\newpage
 
 \subsection{1週間のグラフの作図}
 
@@ -1367,39 +1362,30 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 			for i in range(7):
 			   day = today - timedelta(days=(7-i))
 			   datelist.append(day.strftime('%Y-%m-%d'))
-			if len(sys.argv)==2:
-			   for fname in datelist:
-			      try:
-			         with open(dirstr + "/data/" + fname + ".txt") as f:
-			            for line in f:
-			               datestr = line[:20].strip()
-			               datev = mdates.datestr2num(datestr)
-			               value = float(line[25:].strip())
-			               list0.append([datev, value])
+      if len(sys.argv)==2:
+          for fname in datelist:
+            try:
+                with open(dirstr + "/data/" + fname + ".txt") as f:
+                  for line in f:
+                      list0.append(line)
 			      except FileNotFoundError:
 			         continue
 			else:
-			   while True:
-			      try:
-			         line = input()
-			         for i, l in enumerate(line.split('\t')):
-			            temp = l.strip()
-			            if len(temp)>0:
-			               if i==0:
-			                  startstr = temp[:10]
-			                  datev = mdates.datestr2num(temp)
-			               else:
-			                  value = float(temp)
-			            list0.append([datev, value])
+        while True:
+          try:
+              line = input()
+              list0.append(line)
 			      except EOFError:
 			         break
 
-			title = 'Smel Level : ' + startstr + ' (Weekly)'
+			title = 'Smel(W) : '
 			fig = graph_plot(list0, title)
 			#fig.savefig(dirstr + '/figs/' + startstr + '.png')
 \end{verbatim}
 \end{itembox}
 \end{spacing}
+
+\newpage
 
 \section{指定日から遡って指定日数分のグラフを作図する}
 
@@ -1422,7 +1408,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 \item[例2は] 例1と同じ
 \item[例3は] 実行日の前日を含めて、その日から遡って2日分のデータをグラフ化する
 \item[例4は] 指定日付2024-05-10を含めて、その日から遡って6日分のデータをグラフ化する
-\item[例5は] 9日分のデータを２行2列でグラフ化する（4日分だけプロットする）
+\item[例5は] 7日分のデータを２行2列でグラフ化する（4日分だけプロットすることになる）
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -1449,7 +1435,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
   days='1' rows='2' cols='3'
   if [ $# -gt 0 ]; then
     days=$1
-    if [ "${days}" -gt 6 ]; then days='6'; fi
+    #if [ "${days}" -gt 6 ]; then days='6'; fi
     if [ $# -ge 2 ]; then
     if [ $(date -d "$2" +%s) -lt $(date -d "${today}" +%s) ]; then
       dates=$2
@@ -1457,13 +1443,11 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
     fi
     if [ $# -ge 3 ]; then
       rows=$3 cols=$4
-      if [ "${rows}" -gt 2 ]; then rows='2'; fi
-      if [ "${cols}" -gt 3 ]; then cols='3'; fi
+      #if [ "${rows}" -gt 2 ]; then rows='2'; fi
+      #if [ "${cols}" -gt 3 ]; then cols='3'; fi
     fi
   fi
   if [ $# -le 4 ]; then
-    #echo $# $1 $2 $3 $4
-    #echo $dates "$days" "$rows" "$cols"
     . ${dir}/venv11/bin/activate
       python3 ${dir}/cloudplot.py ${dates} ${days} ${rows} ${cols}
     deactivate
@@ -1472,7 +1456,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 \end{itembox}
 \end{spacing}
 
-%\newpage
+コメントアウトしている３行を生かすと、２行3列の6日分に拘束するようになる\\
 
 プログラム実行日当日分のデータは、まだクラウド上にない（昨日分までがクラウド上にある）ので、本日以降の日付が指定された場合は、昨日の日付に解釈し直している
 
@@ -1546,9 +1530,11 @@ dateコマンドで一度日付時間をUnix時間の形に直す（ -d ある�
 \end{breakbox}
 \end{spacing}
 
-myplot.py をこれまでのものと書き換えている
+myplot.py はこれまでのものを書き換えている
 
-graph\_plot()は1つのグラフ用紙に描画するが、graph\_plots()はnrows=rows行ncols=cols列のグラフ用紙に描画する（rows=cols=1の場合、graph\_plots()でも作図可能だが、graph\_plot()も残している）
+graph\_plot()は1つのグラフ用紙に描画するが、graph\_plots()はnrows=rows行ncols=cols列のグラフ用紙に描画する
+
+rows=cols=1の場合、graph\_plots()でも1つのグラフに作図可能だが、ここまでの処理との互換性を維持する観点からgraph\_plot()も残している\\
 
 \begin{spacing}{0.8}
 \begin{breakbox}[l]{/home/mat/Documents/myplot.py}
