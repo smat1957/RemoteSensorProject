@@ -24,14 +24,11 @@ def graph_plot(datalist, titlestr):
     title = titlestr + f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
     matplotlib.style.use('ggplot')
     fig, ax = plt.subplots()
-    step = (ymax - ymin) / 10.0
-    ymax = ((ymax//step)+1)*step+step/2.0
-    ymin = (ymin//step)*step-step/2.0
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
-    ax.set_ylim([ymin, ymax])
+    ax.set_ylim([ymin*0.9, ymax*1.1])
     ax.set_xlabel('Date-Time')
     ax.set_ylabel('Volt')
     ax.set_title(title)
@@ -56,9 +53,6 @@ def graph_plots(datalist, titlestr, rows, cols):
     fig, ax = plt.subplots(nrows=rows, ncols=cols,\
                            squeeze=False, tight_layout=True,\
                            sharex=None, sharey='row', figsize=(15,9))
-    step = (ymax - ymin) / 10.0
-    ymax = ((ymax//step)+1)*step+step/2.0
-    ymin = (ymin//step)*step-step/2.0
     k = 0
     for i in range(rows):
         for j in range(cols):
@@ -66,7 +60,7 @@ def graph_plots(datalist, titlestr, rows, cols):
             formatter = mdates.ConciseDateFormatter(locator)
             ax[i,j].xaxis.set_major_locator(locator)
             ax[i,j].xaxis.set_major_formatter(formatter)
-            ax[i,j].set_ylim([ymin, ymax])
+            ax[i,j].set_ylim([ymin*0.9, ymax*1.1])
             if k<len(x):
                 ax[i,j].plot(x[k], y[k])
                 k+=1
