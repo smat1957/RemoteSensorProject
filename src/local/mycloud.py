@@ -69,10 +69,10 @@ if __name__ == '__main__':
     datestr = dt.now().strftime(s_format)
     if len(sys.argv) == 3 and sys.argv[1]=='-w':
         today = dt.strptime(sys.argv[2], s_format)
-        datestr = (today - timedelta(days=7)).strftime(s_format)
+        datestr = (today - timedelta(days=6)).strftime(s_format)
         text = ""
         for i in range(7):
-            day = today - timedelta(days=(7-i))
+            day = today - timedelta(days=(6-i))
             datestr = day.strftime(s_format)
             try:
                 temp = CL.download_as_string('data/'+datestr+'.txt')
@@ -83,3 +83,6 @@ if __name__ == '__main__':
         datestr = sys.argv[1]
         text = CL.download_as_string('data/'+datestr+'.txt')
     print(text)
+    #for dstr in text.split('\n'):
+    #    if len(dstr)>0:
+    #        print(dstr[:20], '\t', dstr[25:].strip())

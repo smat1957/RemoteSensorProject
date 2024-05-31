@@ -9,11 +9,11 @@ s_format = '%Y-%m-%d'
 today = dt.now()
 if len(sys.argv) > 1:
     today = dt.strptime(sys.argv[1], s_format)
-startstr = (today - timedelta(days=7)).strftime(s_format)
+startstr = (today - timedelta(days=6)).strftime(s_format)
 
 datelist, list0 = [], []
 for i in range(7):
-    day = today - timedelta(days=(7-i))
+    day = today - timedelta(days=(6-i))
     datelist.append(day.strftime(s_format))
 
 if sys.argv==2:
