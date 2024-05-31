@@ -651,7 +651,7 @@ fi
 
 	第1引数で処理対象にする最終日付を受け取ることができる様にしている
 
-	指定された処理対象の最終日付から、7日前の日付を求めて、7日間の日付のリストdatelistを作っている
+	指定された処理対象の最終日付（を含めて、その日）から1週間前の日付を求め、その7日間の日付のリストdatelistを作っている
 
 	7日間の日付リストdatelistから1日ずつ取り出しては、そのファイル名のデータをdataフォルダから読み出し、日付の変換と電圧の実数への変換を行い、それらのデータのリストをlist0に追記していっている
 
@@ -671,11 +671,11 @@ s_format = '%Y-%m-%d'
 today = dt.now()
 if len(sys.argv) > 1:
   today = dt.strptime(sys.argv[1], s_format)
-startstr = (today - timedelta(days=7)).strftime(s_format)
+startstr = (today - timedelta(days=6)).strftime(s_format)
 
 datelist = []
 for i in range(7):
-  day = today - timedelta(days=(7-i))
+  day = today - timedelta(days=(6-i))
   datelist.append(day.strftime(s_format))
 
 list0=[]
@@ -1084,11 +1084,11 @@ deactivate
 		リモート & procdaily.sh & cron により毎日23時58分に起動される. 1日分の蓄積データ w.txt をdata/フォルダへ退避させる. upcloud.py を起動して本日分の計測データをクラウドにアップロードし、最後に昨日分の計測データを削除する（更新） \\
 		リモート & upcloud.py & クラウドに指定日付のデータをアップロードする.  \\
 		ローカル & mycloud.py & 指定した日付のデータをクラウドから読んで標準出力に出力する. -w のスイッチを付けて起動した場合、指定日付から1週間前までのデータをクラウドから読んで標準出力へ出力する.   \\
-		ローカル & daily.py & 標準入力から受け取った計測データをもとに、1日の値の変化をグラフにする（更新） \\
-		ローカル & weekly.py & 標準入力から受け取った計測データをもとに、1週間の値の変化をグラフにする（更新） \\
+		ローカル & daily.py & 標準入力からの1日分のデータをグラフ化する（更新） \\
+		ローカル & weekly.py & 標準入力からの1週間分のデータをグラフにする（更新） \\
 		ローカル & dayplot.sh & mycloud.py から daily.py へパイプで繋いでいる \\
 		ローカル & weekplot.sh & mycloud.py から weekly.py へパイプで繋いでいる \\
-		ローカル & myplot.py & daily.py,weekly.py,cloudplot.pyから呼び出される（更新）\\
+		ローカル & myplot.py & daily.py,weekly.py,cloudplot.pyから呼ばれる（追加更新）\\
 		両方 & gcloud.py & GCSWapperクラス(upload0.pyとmycloud.pyで継承する) \\
     ローカル & cloudplot.sh & cloudplot.py を呼び出している \\
     ローカル & cloudplot.py & 指定日から遡って指定日数分のグラフを作図 \\ \hline
