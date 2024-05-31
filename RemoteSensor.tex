@@ -1396,25 +1396,28 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 
 コマンドラインから動作させる（これで、日毎や週毎のグラフ作成処理は不要になる）
 
-\begin{spacing}{0.95}
+\begin{spacing}{0.91}
 \begin{screen}
 \begin{verbatim}
 	 例1 mat@raspi:~/Documents $ sh ./cloudplot.sh
   例2 mat@raspi:~/Documents $ sh ./cloudplot.sh 1
-  例3 mat@raspi:~/Documents $ sh ./cloudplot.sh 2
-  例4 mat@raspi:~/Documents $ sh ./cloudplot.sh 6 2024-05-10
-  例5 mat@raspi:~/Documents $ sh ./cloudplot.sh 7 2024-05-10 2 2
+  例3 mat@raspi:~/Documents $ sh ./cloudplot.sh 6
+  例4 mat@raspi:~/Documents $ sh ./cloudplot.sh 1 2024-05-10
+  例5 mat@raspi:~/Documents $ sh ./cloudplot.sh 6 2024-05-10
+  例6 mat@raspi:~/Documents $ sh ./cloudplot.sh 10 2024-05-10
+  例7 mat@raspi:~/Documents $ sh ./cloudplot.sh 30 2024-05-10 4 5
 \end{verbatim}
 \end{screen}
-\end{spacing}
 
 \begin{itemize}
-\item[例1は] 実行日の前日の1日分のデータをグラフにする
-\item[例2は] 例1と同じ
-\item[例3は] 実行日の前日を含めて、その日から遡って2日分のデータをグラフ化する
-\item[例4は] 指定日付2024-05-10を含めて、その日から遡って6日分のデータをグラフ化する
-\item[例5は] 7日分のデータを２行2列でグラフ化する（4日分だけプロットすることになる）
+\item[例1は] 実行日の前日の1日分のデータをグラフにする（例2も同じ指示になる）
+\item[例3は] 実行日の前日から遡って6日分のデータをグラフ化する（２行3列で）
+\item[例4は] 指定日付2024-05-10の、1日分のデータをグラフ化する
+\item[例5は] 指定日付2024-05-10から遡って6日分のデータをグラフ化する（２行3列で）
+\item[例6は] 指定日付前の6日間を、２行3列でグラフ化する（10日分の表示はしない）
+\item[例7は] 指定日付前の20日間を、4行5列でグラフ化する（30日分の表示はしない）
 \end{itemize}
+\end{spacing}
 
 \begin{figure}[htbp]
 	\begin{minipage}[b]{1.0\linewidth}
@@ -1463,11 +1466,14 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
 
 コメントアウトしている３行を生かすと、２行3列の6日分に拘束するようになる\\
 
-プログラム実行日当日分のデータは、まだクラウド上にない（昨日分までがクラウド上にある）ので、本日以降の日付が指定された場合は、昨日の日付に解釈し直している
+dayplot.sh、weekplot.sh、cloudplot.sh に共通することとして
 
-日付はUnix時間で比較している.
-dateコマンドで一度日付時間をUnix時間の形に直す（ -d あるいは -\;-date オプションによる）Unix時間として出力するための書式文字には \%s を指定する
-（なお、shell上での加算減算は、\$((\$a+\$b))などでもできる）
+\begin{itemize}
+\item プログラム実行日当日分のデータは、まだクラウド上にない（昨日分までがクラウド上にある）ので、「本日以降の日付」が指定された場合は、昨日の日付に解釈し直している
+\item 「本日以降の日付」かどうかは、Unix時間で比較している.\\
+dateコマンドで日付時間をUnix時間に直すことができる（ -d あるいは -\;-date オプションを指定し、Unix時間として出力するための書式文字には \%s を指定する）
+\item なお、shell上での加算減算は、\$((\$a+\$b))などとすることもできる
+\end{itemize}
 
 \newpage
 
