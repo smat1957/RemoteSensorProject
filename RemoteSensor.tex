@@ -539,7 +539,7 @@ with open(dirstr + "/data/" + today + ".txt") as f:
   for line in f:
     list0.append(line)
 
-title = 'Smel : '
+title = 'Smell : '
 fig = graph_plot(list0, title)
 #fig.savefig(dirstr + '/figs/' + today + '.png')
 \end{verbatim}
@@ -687,7 +687,7 @@ for fname in datelist:
   except FileNotFoundError:
     continue
 
-title = 'Smel(W) : '
+title = 'Smell(W) : '
 fig = graph_plot(list0, title)
 #fig.savefig(dirstr + '/figs/' + startstr + '.png')
 \end{verbatim}
@@ -1302,7 +1302,7 @@ if __name__ == '__main__':
         except EOFError:
           break
 
-    title = 'Smel : '
+    title = 'Smell : '
     fig = graph_plot(list0, title)
     #fig.savefig(dirstr + '/figs/' + today + '.png')
 \end{verbatim}
@@ -1383,7 +1383,7 @@ weekly.py は次の通り（日毎の処理と同様に、同じ場所に　mypl
           except EOFError:
             break
 
-			title = 'Smel(W) : '
+			title = 'Smell(W) : '
 			fig = graph_plot(list0, title)
 			#fig.savefig(dirstr + '/figs/' + startstr + '.png')
 \end{verbatim}
@@ -1531,7 +1531,7 @@ dateコマンドで日付時間をUnix時間に直すことができる（ -d �
               continue
           datalist.append(temp)
 
-      title = 'Smel : '
+      title = 'Smell : '
       if (rows==1 and cols==1):
           fig = graph_plot(datalist, title)
       else:
