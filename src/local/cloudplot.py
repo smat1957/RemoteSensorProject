@@ -98,7 +98,7 @@ if __name__ == '__main__':
             continue
         datalist.append(temp)
     
-    title = 'Smel : '
+    title = 'Smell : '
     if (rows==1 and cols==1):
         fig = graph_plot(datalist, title)
     else:

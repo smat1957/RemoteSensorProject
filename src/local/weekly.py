@@ -42,6 +42,6 @@ else:
             list0.append([datev, value])
         except EOFError:
             break
-title = 'Smel Level : ' + startstr + ' (Weekly)'
+title = 'Smell Level : ' + startstr + ' (Weekly)'
 fig = graph_plot(list0, title)
 #fig.savefig(dirstr + '/figs/' + startstr + '.png')
