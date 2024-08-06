@@ -4,6 +4,17 @@ import matplotlib.pyplot as plt
 import matplotlib.style
 import matplotlib.dates as mdates
 
+def yrange(ymax, ymin):
+    step = (ymax - ymin) / 10.0
+    v = 0.0
+    while ymax > v:
+        v += step
+    ymax = v + step/2.0
+    while ymin < v:
+        v -= step
+    ymin = v - step/2.0
+    return ymax, ymin
+
 def chop(daystr):
     x, y = [], []
     for dstr in daystr.split('\n'):
@@ -24,11 +35,14 @@ def graph_plot(datalist, titlestr):
     title = titlestr + f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
     matplotlib.style.use('ggplot')
     fig, ax = plt.subplots()
+    #ymax, ymin = yrange(ymax, ymin)
+    ymax = ymax*1.1
+    ymin = ymin*0.9
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
-    ax.set_ylim([ymin*0.9, ymax*1.1])
+    ax.set_ylim([ymin, ymax])
     ax.set_xlabel('Date-Time')
     ax.set_ylabel('Volt')
     ax.set_title(title)
@@ -53,6 +67,10 @@ def graph_plots(datalist, titlestr, rows, cols):
     fig, ax = plt.subplots(nrows=rows, ncols=cols,\
                            squeeze=False, tight_layout=True,\
                            sharex=None, sharey='row', figsize=(15,9))
+    #ymax, ymin = yrange(ymax, ymin)
+    yr = (ymax - ymin)/20.0
+    ymax = ymax*(1.0 + yr)
+    ymin = ymin*(1.0 - yr)
     k = 0
     for i in range(rows):
         for j in range(cols):
@@ -60,7 +78,7 @@ def graph_plots(datalist, titlestr, rows, cols):
             formatter = mdates.ConciseDateFormatter(locator)
             ax[i,j].xaxis.set_major_locator(locator)
             ax[i,j].xaxis.set_major_formatter(formatter)
-            ax[i,j].set_ylim([ymin*0.9, ymax*1.1])
+            ax[i,j].set_ylim([ymin, ymax])
             if k<len(x):
                 ax[i,j].plot(x[k], y[k])
                 k+=1

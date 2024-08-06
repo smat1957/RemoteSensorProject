@@ -1550,10 +1550,22 @@ rows=cols=1の場合、graph\_plots()でも1つのグラフに作図可能だが
 \begin{spacing}{0.8}
 \begin{breakbox}[l]{/home/mat/Documents/myplot.py}
 \begin{verbatim}
-import numpy as np, pandas as pd
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.style
 import matplotlib.dates as mdates
+
+def yrange(ymax, ymin):
+    step = (ymax - ymin) / 10.0
+    v = 0.0
+    while ymax > v:
+        v += step
+    ymax = v + step/2.0
+    while ymin < v:
+        v -= step
+    ymin = v - step/2.0
+    return ymax, ymin
 
 def chop(daystr):
     x, y = [], []
@@ -1565,22 +1577,24 @@ def chop(daystr):
             y.append(value)
     return x, y
 
-def graph_plot(datalist, tstr):
+def graph_plot(datalist, titlestr):
     x, y = [], []
     for daystr in datalist:
         x0, y0 = chop(daystr)
         x.extend(x0)
         y.extend(y0)
     ymax, ymin, yave = max(y), min(y), np.mean(y)
-    title = tstr +\
-      f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
+    title = titlestr + f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
     matplotlib.style.use('ggplot')
     fig, ax = plt.subplots()
+    #ymax, ymin = yrange(ymax, ymin)
+    ymax = ymax*1.1
+    ymin = ymin*0.9
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
-    ax.set_ylim([ymin*0.9, ymax*1.1])
+    ax.set_ylim([ymin, ymax])
     ax.set_xlabel('Date-Time')
     ax.set_ylabel('Volt')
     ax.set_title(title)
@@ -1588,7 +1602,7 @@ def graph_plot(datalist, tstr):
     plt.show()
     return fig
 
-def graph_plots(datalist, tstr, rows, cols):
+def graph_plots(datalist, titlestr, rows, cols):
     ymax, ymin, yave = -20.0, 20.0, 0.0
     x, y = [], []
     for daystr in datalist:
@@ -1600,14 +1614,15 @@ def graph_plots(datalist, tstr, rows, cols):
         ymin = mini if (mini<ymin) else ymin
         yave += np.mean(y0)
     yave = yave / len(datalist)
-    title = tstr +\
-      f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
-
+    title = titlestr + f'Min={ymin:0.3f}, Max={ymax:0.3f}, Mean={yave:0.3f}'
     matplotlib.style.use('ggplot')
     fig, ax = plt.subplots(nrows=rows, ncols=cols,\
-                squeeze=False, tight_layout=True,\
-                sharex=None, sharey='row', figsize=(15,9))
-
+                            squeeze=False, tight_layout=True,\
+                            sharex=None, sharey='row', figsize=(15,9))
+    #ymax, ymin = yrange(ymax, ymin)
+    yr = (ymax - ymin)/20.0
+    ymax = ymax*(1.0 + yr)
+    ymin = ymin*(1.0 - yr)
     k = 0
     for i in range(rows):
         for j in range(cols):
@@ -1615,7 +1630,7 @@ def graph_plots(datalist, tstr, rows, cols):
             formatter = mdates.ConciseDateFormatter(locator)
             ax[i,j].xaxis.set_major_locator(locator)
             ax[i,j].xaxis.set_major_formatter(formatter)
-            ax[i,j].set_ylim([ymin*0.9, ymax*1.1])
+            ax[i,j].set_ylim([ymin, ymax])
             if k<len(x):
                 ax[i,j].plot(x[k], y[k])
                 k+=1
@@ -1624,7 +1639,6 @@ def graph_plots(datalist, tstr, rows, cols):
         else:
             continue
         break
-
     fig.supxlabel('Date-Time')
     fig.supylabel('Volt')
     fig.suptitle(title)
